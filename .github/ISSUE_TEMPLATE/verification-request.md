@@ -34,5 +34,4 @@ I verify that the following is true:
   - [ ] I verified this issue has the correct project label (e.g. `project1`).
   - [ ] I verified this issue belongs to the correct milestone (e.g. `project1`).
 
-----
 
