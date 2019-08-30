@@ -29,7 +29,7 @@ I verify that the following is true:
   - [ ] I created a properly named project release (e.g. `v1.0.0`).
   - [ ] I tested this release by running the `review` script on the CS lab computers.
   - [ ] I verified the issue title is correct and includes the release number (e.g `Review Request: Project v1.0.0`)
-  - [ ] I verified the `JASON LIANG`, `ISSUE`, `PULL`, `GovernmentConspiracy` and `RELEASE` fields have been updated with the correct information.
+  - [ ] I verified the `FULL_NAME`, `ISSUE`, `PULL`, `GITHUB_USER` and `RELEASE` fields have been updated with the correct information.
   - [ ] I verified the issue is properly assigned (e.g. `oliviakumar`).
   - [ ] I verified this issue has the `review` label.
   - [ ] I verified this issue has the correct project label (e.g. `project1`).
