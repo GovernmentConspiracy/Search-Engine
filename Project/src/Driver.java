@@ -34,8 +34,6 @@ public class Driver {
 	}
 
 	/*
-	 * TODO: Delete this after reading...
-	 *
 	 * Generally, "driver" classes are responsible for setting up and calling other
 	 * classes, usually from a main() method that parses command-line parameters. If
 	 * the driver were only responsible for a single class, we use that class name.
