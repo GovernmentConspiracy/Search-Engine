@@ -5,7 +5,7 @@ title: 'Verification Request: Project v#'
 labels: verify
 assignees: oliviakumar
 
----
+===
 
 Please verify my project functionality. The required information is below:
 
