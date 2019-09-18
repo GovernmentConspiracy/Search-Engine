@@ -112,7 +112,7 @@ public class SimpleJsonWriter {
 	 *
 	 * @see #asGenericObject(Map, Writer, int)
 	 */
-    public static String asGenericObject(Set<? extends Map.Entry<String, ?>> elements) {
+    public static String asGenericObject(Map<String, ?> elements) {
         try {
             StringWriter writer = new StringWriter();
             asGenericObject(elements, writer, 0);
@@ -151,24 +151,6 @@ public class SimpleJsonWriter {
 	 * @see #asGenericObject(Map, Writer, int)
 	 */
 	public static void asGenericObject(Map<String, ?> elements, Writer writer, int level) throws IOException {
-		indent(writer, level);
-		asDependentGenericObject(elements, writer, level);
-		writer.write('\n');
-	}
-
-	/**
-	 * Writes the elements as a generic pretty JSON object. The generic notation used
-	 * allows this method to be used for any type of map with any type of nested
-	 * collection of integer objects.
-	 *
-	 * @param elements the elements to write
-	 * @param writer   the writer to use
-	 * @param level    the initial indent level
-	 * @throws IOException if file is not found
-	 *
-	 * @see #asDependentGenericObject(Map, Writer, int)
-	 */
-	public static void asGenericObject(Set<? extends Map.Entry<String, ?>> elements, Writer writer, int level) throws IOException {
 		indent(writer, level);
 		asDependentGenericObject(elements, writer, level);
 		writer.write('\n');

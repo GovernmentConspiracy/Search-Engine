@@ -28,13 +28,9 @@ public class Driver {
 		System.out.println(Arrays.toString(args));
 
         ArgumentParser parser = new ArgumentParser(args);
-        System.out.println(parser.sacrilege());
-        parser.sacrilege().entrySet().clear();
-		for(Map.Entry<String, String> entry: parser.sacrilege().entrySet()) {
-			entry.setValue("lol no");
-		}
+        System.out.println(parser.getUnmodifiableMap());
 
-		System.out.println(parser.sacrilege());
+		System.out.println(parser.getUnmodifiableMap());
 		// calculate time elapsed and output
 		Duration elapsed = Duration.between(start, Instant.now());
 		double seconds = (double) elapsed.toMillis() / Duration.ofSeconds(1).toMillis();

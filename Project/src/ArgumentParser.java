@@ -213,9 +213,8 @@ public class ArgumentParser {
 		return this.map.toString();
 	}
 
-	public Map<String, String> sacrilege() {
-		return map;
-//		return Collections.unmodifiableMap(map);
+	public Map<String, String> getUnmodifiableMap() {
+		return Collections.unmodifiableMap(map);
 	}
 
 	/**
