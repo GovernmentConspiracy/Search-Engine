@@ -1,6 +1,6 @@
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
+import java.util.*;
 
 /**
  * Class responsible for running this project based on the provided command-line
@@ -27,6 +27,14 @@ public class Driver {
 		// TODO Fill in and modify this method as necessary.
 		System.out.println(Arrays.toString(args));
 
+        ArgumentParser parser = new ArgumentParser(args);
+        System.out.println(parser.sacrilege());
+        parser.sacrilege().entrySet().clear();
+		for(Map.Entry<String, String> entry: parser.sacrilege().entrySet()) {
+			entry.setValue("lol no");
+		}
+
+		System.out.println(parser.sacrilege());
 		// calculate time elapsed and output
 		Duration elapsed = Duration.between(start, Instant.now());
 		double seconds = (double) elapsed.toMillis() / Duration.ofSeconds(1).toMillis();

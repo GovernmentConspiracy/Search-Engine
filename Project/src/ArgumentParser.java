@@ -1,9 +1,6 @@
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Parses and stores command-line arguments into simple key = value pairs.
@@ -24,7 +21,20 @@ public class ArgumentParser {
 	 */
 	public ArgumentParser() {
 		// TODO Initialize map
-		this.map = new HashMap<>();
+		this.map = new HashMap<>() {
+			@Override
+			public Set<String> keySet() {
+				return Collections.unmodifiableSet(super.keySet());
+			}
+			@Override
+			public Collection<String> values() {
+				return Collections.unmodifiableCollection(super.values());
+			}
+			@Override
+			public Set<Map.Entry<String, String>> entrySet() {
+				return Collections.unmodifiableSet(super.entrySet());
+			}
+		};
 	}
 
 	/**
@@ -203,8 +213,9 @@ public class ArgumentParser {
 		return this.map.toString();
 	}
 
-	public Set<Map.Entry<String, String>> sacrilege() {
-		return Collections.unmodifiableSet(map.entrySet());
+	public Map<String, String> sacrilege() {
+		return map;
+//		return Collections.unmodifiableMap(map);
 	}
 
 	/**
