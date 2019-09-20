@@ -1,4 +1,9 @@
+import org.w3c.dom.Text;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -6,6 +11,7 @@ import java.util.*;
 
 public class InvertedIndex {
     private final Map<String, Map<String, Set<Integer>>> map; //String1 = word, String2 = Path, Set1 = Location
+    private final Map<String, Long> counter;
 
     public InvertedIndex() {
         map = new TreeMap<>() {
@@ -22,6 +28,8 @@ public class InvertedIndex {
                 return Collections.unmodifiableSet(super.entrySet());
             }
         };
+
+        counter = new TreeMap<>();
     }
 
     public static List<Path> getFiles(Path input) throws IOException {
@@ -60,6 +68,38 @@ public class InvertedIndex {
      */
     public void mapToJSON(Path output) throws IOException{
         SimpleJsonWriter.asGenericObject(map, output);
+    }
+
+    /**
+     *
+     * @param input
+     */
+    public void count(Path input) { //TODO: Efficient counter will iterate through the pre-made inverse index
+        List<Path> paths = null;
+        try {
+             paths = getFiles(input);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        for (Path in: paths) {
+            try (
+                    BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
+            ) {
+                counter.put(in.toString(),
+                        reader.lines()
+                                .flatMap(line -> Arrays.stream(TextParser.parse(line)))
+                                .count()
+                );
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void countToJSON(Path output) throws IOException {
+        SimpleJsonWriter.asGenericObject(counter, output);
     }
 
 
