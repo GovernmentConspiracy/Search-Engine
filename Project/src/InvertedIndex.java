@@ -1,21 +1,14 @@
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class InvertedIndex {
-    private final Map<String, Map<String, Set<Integer>>> behemoth; //String1 = word, String2 = Path, Set1 = Location
+    private final Map<String, Map<String, Set<Integer>>> map; //String1 = word, String2 = Path, Set1 = Location
 
     public InvertedIndex() {
-        behemoth = new TreeMap<>() {
+        map = new TreeMap<>() {
             @Override
             public Set<String> keySet() {
                 return Collections.unmodifiableSet(super.keySet());
@@ -37,6 +30,13 @@ public class InvertedIndex {
         return paths;
     }
 
+    /**
+     * Helper method for getFiles() to generate Path to List of Paths
+     * @param paths Parameter being edited
+     * @param input The current path, either directory or file
+     * @throws IOException
+     * @see #getFiles(Path)
+     */
     private static void getFiles(List<Path> paths, Path input) throws IOException {
         if (Files.exists(input)) {
             if (Files.isDirectory(input)) {
@@ -53,36 +53,13 @@ public class InvertedIndex {
         }
     }
 
-    /*
-     * public static boolean forceDelete(File path) {
-     *         if (path.exists() && path.isDirectory()) {
-     *             File[] files = path.listFiles();
-     *             for (int i = 0; i < files.length; i++) {
-     *                 if (files[i].isDirectory()) {
-     *                     forceDelete(files[i]);
-     *                 }
-     *                 else
-     *                     files[i].delete();
-     *             }
-     *         }
-     *         return (path.delete());
-     *     }
-     */
-
     /**
-     *
-     * @param output
+     * Generates a JSON text file to store output
+     * @param output The output path to store the JSON object
      * @throws IOException
      */
-    public void mapToFile(Path output) throws IOException{
-        try (
-                BufferedWriter writer = Files.newBufferedWriter(output, StandardCharsets.UTF_8);
-        ) {
-
-
-
-        }
-
+    public void mapToJSON(Path output) throws IOException{
+        SimpleJsonWriter.asGenericObject(map, output);
     }
 
 

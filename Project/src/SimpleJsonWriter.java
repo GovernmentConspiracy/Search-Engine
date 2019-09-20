@@ -132,7 +132,7 @@ public class SimpleJsonWriter {
 	 *
 	 * @see #asGenericObject(Map, Writer, int)
 	 */
-	public static void asGenericObject(Map<String, ? extends Collection<Integer>> elements, Path path) throws IOException {
+	public static void asGenericObject(Map<String, ?> elements, Path path) throws IOException {
 		try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
 			asGenericObject(elements, writer, 0);
 		}
