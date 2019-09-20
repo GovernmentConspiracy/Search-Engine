@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -38,7 +39,7 @@ public class TextFileStemmer {
 	 * @see #DEFAULT
 	 * @see #uniqueStems(String, Stemmer)
 	 */
-	public static TreeSet<String> uniqueStems(String line) {
+	public static Set<String> uniqueStems(String line) {
 		// THIS IS PROVIDED FOR YOU; NO NEED TO MODIFY
 		return uniqueStems(line, new SnowballStemmer(DEFAULT));
 	}
@@ -54,9 +55,8 @@ public class TextFileStemmer {
 	 * @see Stemmer#stem(CharSequence)
 	 * @see TextParser#parse(String)
 	 */
-	public static TreeSet<String> uniqueStems(String line, Stemmer stemmer) {
-		TreeSet<String> stems = new TreeSet<>();
-
+	public static Set<String> uniqueStems(String line, Stemmer stemmer) {
+		Set<String> stems = new TreeSet<>();
 		String[] words = TextParser.parse(line);
 		for (String word: words) {
 			stems.add((String)stemmer.stem(word)); //Nasty casting
@@ -75,8 +75,8 @@ public class TextFileStemmer {
 	 * @see #uniqueStems(String)
 	 * @see TextParser#parse(String)
 	 */
-	public static TreeSet<String> uniqueStems(Path inputFile) throws IOException {
-		TreeSet<String> stems = new TreeSet<>();
+	public static Set<String> uniqueStems(Path inputFile) throws IOException {
+		Set<String> stems = new TreeSet<>();
 		try (
 				BufferedReader reader = Files.newBufferedReader(inputFile, UTF_8)
 			) {
