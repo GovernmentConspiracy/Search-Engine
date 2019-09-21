@@ -1,7 +1,7 @@
-import org.w3c.dom.Text;
+import opennlp.tools.stemmer.Stemmer;
+import opennlp.tools.stemmer.snowball.SnowballStemmer;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
@@ -10,11 +10,12 @@ import java.nio.file.Path;
 import java.util.*;
 
 public class InvertedIndex {
-    private final Map<String, Map<String, Set<Integer>>> map; //String1 = word, String2 = Path, Set1 = Location
+    private final Map<String, Map<String, Set<Integer>>> indexMap; //String1 = word, String2 = Path, Set1 = Location
     private final Map<String, Long> counter;
+    public static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
 
     public InvertedIndex() {
-        map = new TreeMap<>() {
+        indexMap = new TreeMap<>() {
             @Override
             public Set<String> keySet() {
                 return Collections.unmodifiableSet(super.keySet());
@@ -45,11 +46,11 @@ public class InvertedIndex {
      * @throws IOException
      * @see #getFiles(Path)
      */
-    private static void getFiles(List<Path> paths, Path input) throws IOException {
+    private static void getFiles(List<Path> paths, Path input) throws IOException { //FileVistor
         if (Files.exists(input)) {
             if (Files.isDirectory(input)) {
                 try (
-                        DirectoryStream<Path> stream = Files.newDirectoryStream(input)
+                    DirectoryStream<Path> stream = Files.newDirectoryStream(input)
                 ) {
                     for (Path path: stream) {
                         getFiles(paths, path);
@@ -61,13 +62,46 @@ public class InvertedIndex {
         }
     }
 
+    public void index(Path input) {
+        List<Path> paths = null;
+        try {
+            paths = getFiles(input);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
+        for (Path in: paths) {
+            try (
+                    BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
+            ) {
+                String line;
+                int i = 0;
+                while ((line = reader.readLine()) != null) {
+                    for (String word: TextParser.parse(line)) {
+                        indexPlace(stemmer.stem(word).toString(), in.toString(), ++i);
+                    }
+                }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void indexPlace(String word, String pathString, int location) {
+        indexMap.putIfAbsent(word, new HashMap<>());
+        indexMap.get(word).putIfAbsent(pathString, new TreeSet<>());
+        indexMap.get(word).get(pathString).add(location);
+    }
+
     /**
      * Generates a JSON text file to store output
      * @param output The output path to store the JSON object
      * @throws IOException
      */
-    public void mapToJSON(Path output) throws IOException{
-        SimpleJsonWriter.asGenericObject(map, output);
+    public void indexToJSON(Path output) throws IOException {
+        SimpleJsonWriter.asGenericObject(indexMap, output);
     }
 
     /**
@@ -82,14 +116,16 @@ public class InvertedIndex {
         catch (Exception e) {
             e.printStackTrace();
         }
+        Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
         for (Path in: paths) {
             try (
-                    BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
+                BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
             ) {
                 counter.put(in.toString(),
                         reader.lines()
-                                .flatMap(line -> Arrays.stream(TextParser.parse(line)))
-                                .count()
+                            .flatMap(line -> Arrays.stream(TextParser.parse(line)))
+                            .map(line -> stemmer.stem(line).toString())
+                            .count()
                 );
             }
             catch (Exception e) {
