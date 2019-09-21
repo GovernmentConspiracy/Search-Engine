@@ -25,7 +25,6 @@ public class Driver {
 		// store initial start time
 		Instant start = Instant.now();
 
-		// TODO Fill in and modify this method as necessary.
 		System.out.println(Arrays.toString(args));
 
         ArgumentParser command = new ArgumentParser(args);
