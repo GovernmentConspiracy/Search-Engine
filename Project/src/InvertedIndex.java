@@ -108,7 +108,7 @@ public class InvertedIndex {
      *
      * @param input
      */
-    public void countIfEmptyMap(Path input) { //TODO: Efficient counter will iterate through the pre-made inverse index
+    public void count(Path input) { //TODO: Efficient counter will iterate through the pre-made inverse index
         List<Path> paths = null;
         try {
              paths = getFiles(input);
