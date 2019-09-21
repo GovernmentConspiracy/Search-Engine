@@ -13,24 +13,21 @@ public class InvertedIndex {
     private final Map<String, Map<String, Set<Integer>>> indexMap; //String1 = word, String2 = Path, Set1 = Location
     private final Map<String, Long> counter;
     public static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
+    /**
+     * String array representing the default acceptable file extensions
+     */
+    public static final String[] DEFAULT_ACCEPTABLE_FILES = {".txt", ".text"};
+    private final String[] acceptableFileExtensions;
+
+    public InvertedIndex(String... acceptableFileExtensions) {
+        indexMap = new TreeMap<>();
+        counter = new TreeMap<>();
+        this.acceptableFileExtensions = acceptableFileExtensions;
+        //Arrays.stream(this.acceptableFileExtensions).forEach(System.out::println);
+    }
 
     public InvertedIndex() {
-        indexMap = new TreeMap<>() {
-            @Override
-            public Set<String> keySet() {
-                return Collections.unmodifiableSet(super.keySet());
-            }
-            @Override
-            public Collection<Map<String, Set<Integer>>> values() {
-                return Collections.unmodifiableCollection(super.values());
-            }
-            @Override
-            public Set<Map.Entry<String, Map<String, Set<Integer>>>> entrySet() {
-                return Collections.unmodifiableSet(super.entrySet());
-            }
-        };
-
-        counter = new TreeMap<>();
+        this(DEFAULT_ACCEPTABLE_FILES);
     }
 
     public static List<Path> getFiles(Path input) throws IOException {
@@ -72,19 +69,20 @@ public class InvertedIndex {
         }
         Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
         for (Path in: paths) {
-            try (
-                    BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
-            ) {
-                String line;
-                int i = 0;
-                while ((line = reader.readLine()) != null) {
-                    for (String word: TextParser.parse(line)) {
-                        indexPlace(stemmer.stem(word).toString(), in.toString(), ++i);
+            if (isCorrectExtension(in)) {
+                try (
+                        BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
+                ) {
+                    String line;
+                    int i = 0;
+                    while ((line = reader.readLine()) != null) {
+                        for (String word : TextParser.parse(line)) {
+                            indexPlace(stemmer.stem(word).toString(), in.toString(), ++i);
+                        }
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            }
-            catch (Exception e) {
-                e.printStackTrace();
             }
         }
     }
@@ -118,18 +116,19 @@ public class InvertedIndex {
         }
 //        Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
         for (Path in: paths) {
-            try (
-                BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
-            ) {
-                counter.put(in.toString(),
-                        reader.lines()
-                            .flatMap(line -> Arrays.stream(TextParser.parse(line)))
+            if (isCorrectExtension(in)) {
+                try (
+                        BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
+                ) {
+                    counter.put(in.toString(),
+                            reader.lines()
+                                    .flatMap(line -> Arrays.stream(TextParser.parse(line)))
 //                            .map(line -> stemmer.stem(line).toString()) //Not necessary for counting
-                            .count()
-                );
-            }
-            catch (Exception e) {
-                e.printStackTrace();
+                                    .count()
+                    );
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -138,12 +137,39 @@ public class InvertedIndex {
         mapToJSON(counter, output);
     }
 
-    public void mapToJSON(Map<String, ?> map, Path output) {
+    private void mapToJSON(Map<String, ?> map, Path output) {
         try {
             SimpleJsonWriter.asGenericObject(map, output);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+//    private void test(Path input) {
+//        input.
+//    }
+
+    /**
+     * The jankiest file extension checker. I'm so sorry
+     * @param input
+     * @return
+     */
+    private boolean isCorrectExtension(Path input) {
+        if (acceptableFileExtensions == null || acceptableFileExtensions.length == 0) {
+            return true;
+        }
+        //trims input string, leaving index of last '/' till the end
+        String inputString = input.toString();
+        inputString = inputString.substring(inputString.lastIndexOf('/')).toLowerCase();
+//        System.out.println(inputString);
+        for (String extension : acceptableFileExtensions) {
+            int i = inputString.lastIndexOf(extension);
+            if (i == inputString.length() - extension.length()) {
+                return true;
+            }
+        }
+//        System.out.printf("Failed %s\n\n", inputString);
+        return false;
     }
 
 

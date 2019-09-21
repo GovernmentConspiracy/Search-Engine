@@ -32,29 +32,31 @@ public class Driver {
 
 
         String[] expectedFlags = {"-path", "-index", "-count"};
+		InvertedIndex invertedIndex = new InvertedIndex();
+		Path indexOutput = Path.of("index.json");
+		Path countOutput = Path.of("count.json");
+		Path input = null;
         if (command.hasValue(expectedFlags[0])) {
-        	InvertedIndex invertedIndex = new InvertedIndex();
-			Path input = command.getPath(expectedFlags[0]);
-
-			if (command.hasFlag(expectedFlags[1])) {
-				Path indexOutput = Path.of("index.json");
-				if (command.hasValue(expectedFlags[1]))
-					indexOutput = command.getPath(expectedFlags[1]);
-				invertedIndex.index(input);
-				invertedIndex.indexToJSON(indexOutput);
-			}
-
-			if (command.hasFlag(expectedFlags[2])) {
-				Path countOutput = Path.of("count.json");
-				if (command.hasValue(expectedFlags[2]))
-					countOutput = command.getPath(expectedFlags[2]);
-				invertedIndex.count(input);
-				invertedIndex.countToJSON(countOutput);
-			}
-
+			input = command.getPath(expectedFlags[0]);
 		} else {
 			System.out.printf("Program arguments %s is required\n", expectedFlags[0]);
 			System.out.println("Ex:\n -path \"project-tests/huckleberry.txt\"\n");
+		}
+
+		if (command.hasFlag(expectedFlags[1])) {
+			if (command.hasValue(expectedFlags[1]))
+				indexOutput = command.getPath(expectedFlags[1]);
+			if (input != null)
+				invertedIndex.index(input);
+			invertedIndex.indexToJSON(indexOutput);
+		}
+
+		if (command.hasFlag(expectedFlags[2])) {
+			if (command.hasValue(expectedFlags[2]))
+				countOutput = command.getPath(expectedFlags[2]);
+			if (input != null)
+				invertedIndex.count(input);
+			invertedIndex.countToJSON(countOutput);
 		}
 
 		// calculate time elapsed and output
