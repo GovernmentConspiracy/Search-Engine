@@ -13,8 +13,7 @@ import java.util.*;
  * An index to store words and the location (both file location and position in file) of where those words were found.
  * Auxiliary functions includes word counter and JSON writer
  *
- * @author CS 212 Software Development
- * @author University of San Francisco
+ * @author Jason Liang
  * @version 1.0.0
  */
 public class InvertedIndex {
