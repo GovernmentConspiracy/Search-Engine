@@ -90,7 +90,7 @@ public class InvertedIndex {
     }
 
     private void indexPlace(String word, String pathString, int location) {
-        indexMap.putIfAbsent(word, new HashMap<>());
+        indexMap.putIfAbsent(word, new TreeMap<>());
         indexMap.get(word).putIfAbsent(pathString, new TreeSet<>());
         indexMap.get(word).get(pathString).add(location);
     }
@@ -100,15 +100,15 @@ public class InvertedIndex {
      * @param output The output path to store the JSON object
      * @throws IOException
      */
-    public void indexToJSON(Path output) throws IOException {
-        SimpleJsonWriter.asGenericObject(indexMap, output);
+    public void indexToJSON(Path output) {
+        mapToJSON(indexMap, output);
     }
 
     /**
      *
      * @param input
      */
-    public void count(Path input) { //TODO: Efficient counter will iterate through the pre-made inverse index
+    public void countIfEmptyMap(Path input) { //TODO: Efficient counter will iterate through the pre-made inverse index
         List<Path> paths = null;
         try {
              paths = getFiles(input);
@@ -116,7 +116,7 @@ public class InvertedIndex {
         catch (Exception e) {
             e.printStackTrace();
         }
-        Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
+//        Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
         for (Path in: paths) {
             try (
                 BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
@@ -124,7 +124,7 @@ public class InvertedIndex {
                 counter.put(in.toString(),
                         reader.lines()
                             .flatMap(line -> Arrays.stream(TextParser.parse(line)))
-                            .map(line -> stemmer.stem(line).toString())
+//                            .map(line -> stemmer.stem(line).toString()) //Not necessary for counting
                             .count()
                 );
             }
@@ -134,8 +134,16 @@ public class InvertedIndex {
         }
     }
 
-    public void countToJSON(Path output) throws IOException {
-        SimpleJsonWriter.asGenericObject(counter, output);
+    public void countToJSON(Path output) {
+        mapToJSON(counter, output);
+    }
+
+    public void mapToJSON(Map<String, ?> map, Path output) {
+        try {
+            SimpleJsonWriter.asGenericObject(map, output);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 

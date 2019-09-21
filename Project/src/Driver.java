@@ -1,3 +1,4 @@
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -27,10 +28,26 @@ public class Driver {
 		// TODO Fill in and modify this method as necessary.
 		System.out.println(Arrays.toString(args));
 
-        ArgumentParser parser = new ArgumentParser(args);
-        System.out.println(parser.getUnmodifiableMap());
+        ArgumentParser command = new ArgumentParser(args);
 
-		System.out.println(parser.getUnmodifiableMap());
+        String[] expectedFlags = {"-path", "-index", "-count"};
+        if (command.hasValue(expectedFlags[0])) {
+        	InvertedIndex invertedIndex = new InvertedIndex();
+			Path input = command.getPath(expectedFlags[1]);
+			if (command.hasFlag(expectedFlags[1])) {
+				Path indexPath = Path.of("index.json");
+				if (command.hasValue(expectedFlags[1]))
+					indexPath = command.getPath("-index");
+				invertedIndex.index(input);
+				invertedIndex.indexToJSON(indexPath);
+
+			}
+
+		} else {
+			System.out.printf("Program arguments %s is required", expectedFlags[0]);
+			System.out.println("Ex:\n -path \"project-tests/huckleberry.txt\"");
+		}
+
 		// calculate time elapsed and output
 		Duration elapsed = Duration.between(start, Instant.now());
 		double seconds = (double) elapsed.toMillis() / Duration.ofSeconds(1).toMillis();
