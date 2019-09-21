@@ -30,11 +30,11 @@ public class Driver {
 
         ArgumentParser command = new ArgumentParser(args);
 
-
-        String[] expectedFlags = {"-path", "-index", "-count"};
+		System.out.println(command);
+        String[] expectedFlags = {"-path", "-index", "-counts"};
 		InvertedIndex invertedIndex = new InvertedIndex();
 		Path indexOutput = Path.of("index.json");
-		Path countOutput = Path.of("count.json");
+		Path countOutput = Path.of("counts.json");
 		Path input = null;
         if (command.hasValue(expectedFlags[0])) {
 			input = command.getPath(expectedFlags[0]);

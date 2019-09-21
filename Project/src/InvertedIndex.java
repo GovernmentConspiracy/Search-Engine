@@ -11,7 +11,7 @@ import java.util.*;
 
 public class InvertedIndex {
     private final Map<String, Map<String, Set<Integer>>> indexMap; //String1 = word, String2 = Path, Set1 = Location
-    private final Map<String, Long> counter;
+    private final Map<String, Long> countMap;
     public static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
     /**
      * String array representing the default acceptable file extensions
@@ -21,7 +21,7 @@ public class InvertedIndex {
 
     public InvertedIndex(String... acceptableFileExtensions) {
         indexMap = new TreeMap<>();
-        counter = new TreeMap<>();
+        countMap = new TreeMap<>();
         this.acceptableFileExtensions = acceptableFileExtensions;
         //Arrays.stream(this.acceptableFileExtensions).forEach(System.out::println);
     }
@@ -120,12 +120,14 @@ public class InvertedIndex {
                 try (
                         BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
                 ) {
-                    counter.put(in.toString(),
+                    long count =
                             reader.lines()
                                     .flatMap(line -> Arrays.stream(TextParser.parse(line)))
 //                            .map(line -> stemmer.stem(line).toString()) //Not necessary for counting
-                                    .count()
-                    );
+                                    .count();
+                    if (count > 0)
+                        countMap.put(in.toString(), count);
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -134,7 +136,7 @@ public class InvertedIndex {
     }
 
     public void countToJSON(Path output) {
-        mapToJSON(counter, output);
+        mapToJSON(countMap, output);
     }
 
     private void mapToJSON(Map<String, ?> map, Path output) {
