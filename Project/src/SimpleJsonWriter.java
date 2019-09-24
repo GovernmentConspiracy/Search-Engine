@@ -228,18 +228,6 @@ public final class SimpleJsonWriter {
 		}
 	}
 
-//	private static void asArrayVariable(? element, Writer writer, int level) throws IOException {
-//		if (element instanceof Collection<?>) {
-//			asDependentGenericArray((Collection)element, writer, level);
-//		}
-//		else if (element instanceof Map<?, ?>) {
-//			asDependentGenericObject((Map<String, ?>)element, writer, level);
-//		}
-//		else {
-//			writer.write(element.toString());
-//		}
-//	}
-
 	/**
 	 * Writes the {@code \t} tab symbol by the number of times specified.
 	 *
@@ -247,7 +235,7 @@ public final class SimpleJsonWriter {
 	 * @param times  the number of times to write a tab symbol
 	 * @throws IOException if file is not found
 	 */
-	public static void indent(Writer writer, int times) throws IOException {
+	private static void indent(Writer writer, int times) throws IOException {
 		// THIS CODE IS PROVIDED FOR YOU; DO NOT MODIFY
 		for (int i = 0; i < times; i++) {
 			writer.write('\t');
@@ -262,45 +250,13 @@ public final class SimpleJsonWriter {
 	 * @param times   the number of times to indent
 	 * @throws IOException if file is not found
 	 *
-	 * @see #indent(String, Writer, int)
 	 * @see #indent(Writer, int)
 	 */
-	public static void indent(Integer element, Writer writer, int times) throws IOException {
-		// THIS CODE IS PROVIDED FOR YOU; DO NOT MODIFY
-		indent(element.toString(), writer, times);
-	}
-
-	/**
-	 * Indents and then writes the element.
-	 *
-	 * @param element the element to write
-	 * @param writer  the writer to use
-	 * @param times   the number of times to indent
-	 * @throws IOException if file is not found
-	 *
-	 * @see #indent(Writer, int)
-	 */
-	public static void indent(String element, Writer writer, int times) throws IOException {
+	private static void indent(String element, Writer writer, int times) throws IOException {
 		// THIS CODE IS PROVIDED FOR YOU; DO NOT MODIFY
 		indent(writer, times);
 		writer.write(element);
 	}
-
-	/**
-	 * Indents and then writes the character.
-	 *
-	 * @param ch the character to write
-	 * @param writer  the writer to use
-	 * @param times   the number of times to indent
-	 * @throws IOException if file is not found
-	 *
-	 * @see #indent(Writer, int)
-	 */
-    public static void indent(char ch, Writer writer, int times) throws IOException {
-        // THIS CODE IS PROVIDED FOR YOU; DO NOT MODIFY
-        indent(writer, times);
-        writer.write(ch);
-    }
 
 	/**
 	 * Writes the element surrounded by {@code " "} quotation marks.
@@ -309,7 +265,7 @@ public final class SimpleJsonWriter {
 	 * @param writer  the writer to use
 	 * @throws IOException if file is not found
 	 */
-	public static void quote(String element, Writer writer) throws IOException {
+	private static void quote(String element, Writer writer) throws IOException {
 		// THIS CODE IS PROVIDED FOR YOU; DO NOT MODIFY
 		writer.write('"');
 		writer.write(element);
@@ -328,31 +284,9 @@ public final class SimpleJsonWriter {
 	 * @see #indent(Writer, int)
 	 * @see #quote(String, Writer)
 	 */
-	public static void quote(String element, Writer writer, int times) throws IOException {
+	private static void quote(String element, Writer writer, int times) throws IOException {
 		// THIS CODE IS PROVIDED FOR YOU; DO NOT MODIFY
 		indent(writer, times);
 		quote(element, writer);
-	}
-
-	/**
-	 * A simple main method that demonstrates this class.
-	 *
-	 * @param args unused
-	 */
-	public static void main(String[] args) {
-		// MODIFY AS NECESSARY TO DEBUG YOUR CODE
-
-		TreeSet<Integer> elements = new TreeSet<>();
-		System.out.println("Empty:");
-		System.out.println(asArray(elements));
-
-		elements.add(65);
-		System.out.println("\nSingle:");
-		System.out.println(asArray(elements));
-
-		elements.add(66);
-		elements.add(67);
-		System.out.println("\nSimple:");
-		System.out.println(asArray(elements));
 	}
 }
