@@ -286,6 +286,16 @@ public final class SimpleJsonWriter {
 		writer.write(element);
 	}
 
+	/**
+	 * Indents and then writes the character.
+	 *
+	 * @param ch the character to write
+	 * @param writer  the writer to use
+	 * @param times   the number of times to indent
+	 * @throws IOException if file is not found
+	 *
+	 * @see #indent(Writer, int)
+	 */
     public static void indent(char ch, Writer writer, int times) throws IOException {
         // THIS CODE IS PROVIDED FOR YOU; DO NOT MODIFY
         indent(writer, times);

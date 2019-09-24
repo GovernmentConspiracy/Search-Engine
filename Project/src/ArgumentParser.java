@@ -213,6 +213,11 @@ public class ArgumentParser {
 		return this.map.toString();
 	}
 
+	/**
+	 * Returns an unmodifiable map of flags - value pairs. Used for testing
+	 *
+	 * @return An unmodifiable map
+	 */
 	public Map<String, String> getUnmodifiableMap() {
 		return Collections.unmodifiableMap(map);
 	}
