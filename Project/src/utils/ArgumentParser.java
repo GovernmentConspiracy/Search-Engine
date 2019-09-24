@@ -1,3 +1,5 @@
+package utils;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -9,8 +11,8 @@ import java.util.*;
  * @author University of San Francisco
  * @version Fall 2019
  */
+@SuppressWarnings("WeakerAccess")
 public class ArgumentParser {
-
 	/**
 	 * Stores command-line arguments in key = value pairs.
 	 */
@@ -134,20 +136,6 @@ public class ArgumentParser {
 		return map.containsKey(flag);
 	}
 
-//	/**
-//	 * Determines whether the specified flags exists.
-//	 *
-//	 * @param flags the flags to search for
-//	 * @return a boolean array of elements containing {@code true} if the flag exists and {@code false} otherwise
-//	 */
-//	public boolean[] hasFlag(String... flags) {
-//		boolean[] markers = new boolean[flags.length];
-//		for (int i = 0; i < markers.length; i++) {
-//			markers[i] = hasFlag(flags[i]);
-//		}
-//		return markers;
-//	}
-
 	/**
 	 * Determines whether the specified flag is mapped to a non-null value.
 	 *
@@ -157,21 +145,6 @@ public class ArgumentParser {
 	public boolean hasValue(String flag) {
 		return map.get(flag) != null;
 	}
-
-//	/**
-//	 * Determines whether the specified flag is mapped to a non-null value.
-//	 *
-//	 * @param flags the flags to search for
-//	 * @return a boolean array of elements containing {@code true} if the flag is mapped to a non-null value
-//	 * and {@code false} otherwise
-//	 */
-//	public boolean[] hasValue(String... flags) {
-//		boolean[] markers = new boolean[flags.length];
-//		for (int i = 0; i < markers.length; i++) {
-//			markers[i] = hasValue(flags[i]);
-//		}
-//		return markers;
-//	}
 
 	/**
 	 * Returns the value to which the specified flag is mapped as a {@link String},

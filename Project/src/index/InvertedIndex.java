@@ -1,3 +1,7 @@
+package index;
+
+import utils.SimpleJsonWriter;
+import utils.TextParser;
 import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
 
@@ -7,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -16,11 +21,12 @@ import java.util.*;
  * @author Jason Liang
  * @version v1.0.1
  */
+@SuppressWarnings("WeakerAccess")
 public class InvertedIndex {
     /**
      * Default SnowballStemmer algorithm from OpenNLP.
      */
-    public static SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
+    private static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
 
     /**
      * String array representing the default acceptable file extensions.
@@ -52,8 +58,8 @@ public class InvertedIndex {
      * @param acceptableFileExtensions array of file extensions which are acceptable to read
      */
     public InvertedIndex(String... acceptableFileExtensions) {
-        indexMap = new TreeMap<>();
-        countMap = new TreeMap<>();
+        this.indexMap = new TreeMap<>();
+        this.countMap = new TreeMap<>();
         this.acceptableFileExtensions = acceptableFileExtensions;
         //Arrays.stream(this.acceptableFileExtensions).forEach(System.out::println);
     }
@@ -68,11 +74,28 @@ public class InvertedIndex {
     }
 
     /**
-     * Generates all Paths of the input path recursively.
+     * Returns all paths of {@code Path input} recursively or an empty list if the files could not be generated.
      *
      * @param input The root directory or text tile
-     * @return A list of paths of the entire directory of {@code input} or 0-1 text file(s)
-     * @throws IOException if {@code void getFiles()} failed (i.e {@code input} was wrong)
+     * @return A list of paths of the entire directory of {@code Path input} or 0-1 text file(s)
+     *
+     * @see #getFiles(List, Path)
+     */
+    public static List<Path> getFilesOrEmpty(Path input) {
+        try {
+            return getFiles(input);
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * Returns all paths of {@code Path} input recursively.
+     *
+     * @param input The root directory or text tile
+     * @return A list of non-directory files of the entire directory of {@code Path input}
+     * @throws IOException if the stream could not be made or if {@code Path input} does not exist
      *
      * @see #getFiles(List, Path)
      */
@@ -83,26 +106,34 @@ public class InvertedIndex {
     }
 
     /**
-     * Helper method for getFiles() to generate Path to List of Paths
+     * Helper method for getFiles() to generate a list of paths ({@code List<Path> paths}),
+     * containing all non-directory files in that directory and its subdirectories.
      *
      * @param paths Parameter being edited
      * @param input The current path, either directory or file
-     * @throws IOException if the stream could not be made (i.e {@code input} was wrong)
+     * @throws IOException if the stream could not be made or if {@code Path input}  does not exist
+     *
      * @see #getFiles(Path)
      */
-    private static void getFiles(List<Path> paths, Path input) throws IOException { //FileVistor
-        if (Files.exists(input)) {
-            if (Files.isDirectory(input)) {
-                try (
-                    DirectoryStream<Path> stream = Files.newDirectoryStream(input)
-                ) {
-                    for (Path path: stream) {
-                        getFiles(paths, path);
-                    }
+    private static void getFiles(List<Path> paths, Path input) throws IOException {
+        if (!Files.exists(input)) {
+            String sb = "Could not retrieve Path \"" +
+                    input.toString() +
+                    "\" in directory \"" +
+                    Paths.get("").toAbsolutePath().toString() +
+                    "\".";
+            throw new IOException(sb);
+        }
+        if (Files.isDirectory(input)) {
+            try (
+                DirectoryStream<Path> stream = Files.newDirectoryStream(input)
+            ) {
+                for (Path path: stream) {
+                    getFiles(paths, path);
                 }
-            } else {
-                paths.add(input);
             }
+        } else {
+            paths.add(input);
         }
     }
 
@@ -115,13 +146,7 @@ public class InvertedIndex {
      * @see #indexMap
      */
     public void index(Path input) {
-        List<Path> paths = null;
-        try {
-            paths = getFiles(input);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+        List<Path> paths = getFilesOrEmpty(input);
         Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
         for (Path in: paths) {
             if (isCorrectExtension(in)) {
@@ -175,23 +200,14 @@ public class InvertedIndex {
      * @see #countMap
      */
     public void count(Path input) { //TODO: Efficient counter will iterate through the pre-made inverse index
-        List<Path> paths = null;
-        try {
-             paths = getFiles(input);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-//        Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
+        List<Path> paths = getFilesOrEmpty(input);
         for (Path in: paths) {
             if (isCorrectExtension(in)) {
                 try (
                         BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
                 ) {
-                    long count =
-                            reader.lines()
+                    long count = reader.lines()
                                     .flatMap(line -> Arrays.stream(TextParser.parse(line)))
-//                            .map(line -> stemmer.stem(line).toString()) //Not necessary for counting
                                     .count();
                     if (count > 0)
                         countMap.put(in.toString(), count);
@@ -225,9 +241,10 @@ public class InvertedIndex {
      */
     private void mapToJSON(Map<String, ?> map, Path output) {
         try {
-            SimpleJsonWriter.asGenericObject(map, output);
+            SimpleJsonWriter.asObject(map, output);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.printf("Could not write into Path \"%s\"\n", output.toString());
+            System.err.println(e.getMessage());
         }
     }
 
@@ -239,7 +256,7 @@ public class InvertedIndex {
      *
      * @see #index(Path)
      */
-    private boolean isCorrectExtension(Path input) {
+    private boolean isCorrectExtension(Path input) { //Could have prechecked in #getFiles(Path), but I wanted to conserve its static declaration
         if (acceptableFileExtensions == null || acceptableFileExtensions.length == 0) {
             return true;
         }

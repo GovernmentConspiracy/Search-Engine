@@ -1,3 +1,6 @@
+import index.InvertedIndex;
+import utils.ArgumentParser;
+
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
@@ -23,12 +26,12 @@ public class Driver {
 	public static void main(String[] args) {
 		// store initial start time
 		Instant start = Instant.now();
-
 		System.out.println(Arrays.toString(args));
 
         ArgumentParser command = new ArgumentParser(args);
 
 		System.out.println(command);
+
         String[] expectedFlags = {"-path", "-index", "-counts"};
 		InvertedIndex invertedIndex = new InvertedIndex();
 		Path indexOutput = Path.of("index.json");
@@ -42,16 +45,14 @@ public class Driver {
 		}
 
 		if (command.hasFlag(expectedFlags[1])) {
-			if (command.hasValue(expectedFlags[1]))
-				indexOutput = command.getPath(expectedFlags[1]);
+            indexOutput = command.getPath(expectedFlags[1], indexOutput);
 			if (input != null)
 				invertedIndex.index(input);
 			invertedIndex.indexToJSON(indexOutput);
 		}
 
 		if (command.hasFlag(expectedFlags[2])) {
-			if (command.hasValue(expectedFlags[2]))
-				countOutput = command.getPath(expectedFlags[2]);
+            countOutput = command.getPath(expectedFlags[2], countOutput);
 			if (input != null)
 				invertedIndex.count(input);
 			invertedIndex.countToJSON(countOutput);
