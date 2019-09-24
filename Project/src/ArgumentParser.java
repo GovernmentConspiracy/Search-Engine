@@ -221,16 +221,4 @@ public class ArgumentParser {
 	public Map<String, String> getUnmodifiableMap() {
 		return Collections.unmodifiableMap(map);
 	}
-
-	/**
-	 * A simple main method that parses the command-line arguments provided and
-	 * prints the result to the console.
-	 *
-	 * @param args the command-line arguments to parse
-	 */
-	public static void main(String[] args) {
-		// TODO Modify main(...) as needed to debug code
-		var map = new ArgumentParser(args);
-		System.out.println(map);
-	}
 }
