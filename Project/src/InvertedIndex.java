@@ -15,7 +15,7 @@ import java.util.*;
  * Auxiliary functions includes word counter and JSON writer
  *
  * @author Jason Liang
- * @version v1.0.2
+ * @version v1.0.3
  */
 @SuppressWarnings("WeakerAccess")
 public class InvertedIndex {
