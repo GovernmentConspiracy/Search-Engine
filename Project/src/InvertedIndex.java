@@ -1,7 +1,3 @@
-package index;
-
-import utils.SimpleJsonWriter;
-import utils.TextParser;
 import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
 

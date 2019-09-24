@@ -1,6 +1,3 @@
-import index.InvertedIndex;
-import utils.ArgumentParser;
-
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
