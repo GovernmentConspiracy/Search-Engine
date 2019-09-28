@@ -10,6 +10,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+// TODO Try to separate file parsing and directory traversing into its own "builder" class. have an addFile(Path path, InvertedIndex index) and maybe a traverse(Path path, InvertedIndex index)
+
 /**
  * An index to store words and the location (both file location and position in file) of where those words were found.
  * Auxiliary functions includes word counter and JSON writer
@@ -188,6 +190,12 @@ public class InvertedIndex {
     public void indexToJSON(Path output) {
         mapToJSON(indexMap, output);
     }
+    
+    /* TODO
+    public boolean indexToJSONSafe(Path output) {
+    	return false if an exception happened
+    }
+    */
 
     /**
      * Populates {@code countMap} with text files of Path input
