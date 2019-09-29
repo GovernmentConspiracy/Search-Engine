@@ -46,6 +46,7 @@ public class InvertedIndex {
 
     /**
      * String array representing acceptable file extensions. Default is set to DEFAULT_ACCEPTABLE_FILES
+     *
      * @see #DEFAULT_ACCEPTABLE_FILES
      */
     private final String[] acceptableFileExtensions;
@@ -76,7 +77,6 @@ public class InvertedIndex {
      *
      * @param input The root directory or text tile
      * @return A list of paths of the entire directory of {@code Path input} or 0-1 text file(s)
-     *
      * @see #getFiles(List, Path)
      */
     public static List<Path> getFilesOrEmpty(Path input) {
@@ -88,13 +88,14 @@ public class InvertedIndex {
         return Collections.emptyList();
     }
 
+    //TODO: replace with Files.read() or Files.find()
+
     /**
      * Returns all paths of {@code Path} input recursively.
      *
      * @param input The root directory or text tile
      * @return A list of non-directory files of the entire directory of {@code Path input}
      * @throws IOException if the stream could not be made or if {@code Path input} does not exist
-     *
      * @see #getFiles(List, Path)
      */
     public static List<Path> getFiles(Path input) throws IOException {
@@ -110,7 +111,6 @@ public class InvertedIndex {
      * @param paths Parameter being edited
      * @param input The current path, either directory or file
      * @throws IOException if the stream could not be made or if {@code Path input}  does not exist
-     *
      * @see #getFiles(Path)
      */
     private static void getFiles(List<Path> paths, Path input) throws IOException {
@@ -124,9 +124,9 @@ public class InvertedIndex {
         }
         if (Files.isDirectory(input)) {
             try (
-                DirectoryStream<Path> stream = Files.newDirectoryStream(input)
+                    DirectoryStream<Path> stream = Files.newDirectoryStream(input)
             ) {
-                for (Path path: stream) {
+                for (Path path : stream) {
                     getFiles(paths, path);
                 }
             }
@@ -140,13 +140,12 @@ public class InvertedIndex {
      * storing where a stemmed word was found in a file and position
      *
      * @param input The file path which populates {@code indexMap}
-     *
      * @see #indexMap
      */
     public void index(Path input) {
         List<Path> paths = getFilesOrEmpty(input);
         Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
-        for (Path in: paths) {
+        for (Path in : paths) {
             if (isCorrectExtension(in)) {
                 try (
                         BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
@@ -168,10 +167,9 @@ public class InvertedIndex {
     /**
      * Helper method used to store word, pathString, and location into indexMap. See usages below
      *
-     * @param word A word made from a stemmed string. Used as the outer map key
+     * @param word       A word made from a stemmed string. Used as the outer map key
      * @param pathString A string representing the path where {@code word} in string form. Used as inner map key
-     * @param location An int representing the location of where {@code word} was found in {@code pathString}
-     *
+     * @param location   An int representing the location of where {@code word} was found in {@code pathString}
      * @see #index(Path)
      */
     private void indexPut(String word, String pathString, int location) {
@@ -184,7 +182,6 @@ public class InvertedIndex {
      * Generates a JSON text file of the inverted index, stored at Path output
      *
      * @param output The output path to store the JSON object
-     *
      * @see #count(Path)
      */
     public void indexToJSON(Path output) {
@@ -205,14 +202,14 @@ public class InvertedIndex {
      */
     public void count(Path input) { //TODO: Efficient counter will iterate through the pre-made inverse index
         List<Path> paths = getFilesOrEmpty(input);
-        for (Path in: paths) {
+        for (Path in : paths) {
             if (isCorrectExtension(in)) {
                 try (
                         BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
                 ) {
                     long count = reader.lines()
-                                    .flatMap(line -> Arrays.stream(TextParser.parse(line)))
-                                    .count();
+                            .flatMap(line -> Arrays.stream(TextParser.parse(line)))
+                            .count();
                     if (count > 0)
                         countMap.put(in.toString(), count);
 
@@ -227,7 +224,6 @@ public class InvertedIndex {
      * Generates a JSON text file of the count of words, stored at Path output
      *
      * @param output The output path to store the JSON object
-     *
      * @see #count(Path)
      */
     public void countToJSON(Path output) {
@@ -237,9 +233,8 @@ public class InvertedIndex {
     /**
      * Helper method which creates a JSON file
      *
-     * @param map A map with key string to be converted as a generic object
+     * @param map    A map with key string to be converted as a generic object
      * @param output The output path of the JSON file
-     *
      * @see #index(Path)
      * @see #count(Path)
      */
@@ -252,12 +247,13 @@ public class InvertedIndex {
         }
     }
 
+    //TODO: replace with latest homework's extension checker
+
     /**
      * The jankiest file extension checker. I'm so sorry
      *
      * @param input A non-directory file path
      * @return {@code true} if acceptableFileExtensions is empty or if path Input is one of the extensions
-     *
      * @see #index(Path)
      */
     private boolean isCorrectExtension(Path input) { //Could have prechecked in #getFiles(Path), but I wanted to conserve its static declaration

@@ -30,77 +30,77 @@ Unsupported @SuppressWarnings("WeakerAccess")	SimpleJsonWriter.java	/Project/src
  * @version Fall 2019
  */
 public class Driver {
-	
-//TODO  private static final Path INDEX_OUTPUT = Path.of("index.json"); try this instead
-	
-	//TODO Remove the suppress warnings not necessary for Eclipse
-	
-	/*
-	 * TODO Exception handling
-	 * Handle exceptions in the code that interacts with the user.
-	 * Which means Driver.main. All output should be user friendly (no stack traces)
-	 * and informative so what when an error occurs users know exactly what argument
-	 * they provided that caused the problem.
-	 */
 
-	/**
-	 * Initializes the classes necessary based on the provided command-line
-	 * arguments. This includes (but is not limited to) how to build or search an
-	 * inverted index.
-	 *
-	 * @param args flag/value pairs used to start this program
-	 */
-	public static void main(String[] args) {
-		// store initial start time
-		Instant start = Instant.now();
-		System.out.println(Arrays.toString(args)); // TODO Remove
+//TODO  private static final Path INDEX_OUTPUT = Path.of("index.json"); try this instead
+
+    //TODO Remove the suppress warnings not necessary for Eclipse
+
+    /*
+     * TODO Exception handling
+     * Handle exceptions in the code that interacts with the user.
+     * Which means Driver.main. All output should be user friendly (no stack traces)
+     * and informative so what when an error occurs users know exactly what argument
+     * they provided that caused the problem.
+     */
+
+    /**
+     * Initializes the classes necessary based on the provided command-line
+     * arguments. This includes (but is not limited to) how to build or search an
+     * inverted index.
+     *
+     * @param args flag/value pairs used to start this program
+     */
+    public static void main(String[] args) {
+        // store initial start time
+        Instant start = Instant.now();
+        System.out.println(Arrays.toString(args)); // TODO Remove
 
         ArgumentParser command = new ArgumentParser(args);
 
-		System.out.println(command); // TODO Remove
+        System.out.println(command); // TODO Remove
 
-		/*
-		 * TODO Don't check for expected flags anymore.
-		 */
-		
+        /*
+         * TODO Don't check for expected flags anymore.
+         */
+
         String[] expectedFlags = {"-path", "-index", "-counts"};
-		InvertedIndex invertedIndex = new InvertedIndex();
-		Path indexOutput = Path.of("index.json"); // TODO Declare where you define and use
-		Path countOutput = Path.of("counts.json");
-		Path input = null;
-		
+        InvertedIndex invertedIndex = new InvertedIndex();
+        Path indexOutput = Path.of("index.json"); // TODO Declare where you define and use
+        Path countOutput = Path.of("counts.json");
+        Path input = null;
+
         if (command.hasValue(expectedFlags[0])) {
-			input = command.getPath(expectedFlags[0]);
-		} else {
-			System.out.printf("Program arguments %s is required\n", expectedFlags[0]);
-			System.out.println("Ex:\n -path \"project-tests/huckleberry.txt\"\n");
-		}
+            input = command.getPath(expectedFlags[0]);
+        } else {
+            System.out.printf("Program arguments %s is required\n", expectedFlags[0]);
+            System.out.println("Ex:\n -path \"project-tests/huckleberry.txt\"\n");
+        }
 
-		if (command.hasFlag(expectedFlags[1])) {
+        if (command.hasFlag(expectedFlags[1])) {
             indexOutput = command.getPath(expectedFlags[1], indexOutput);
-			if (input != null)
-				invertedIndex.index(input);
-			invertedIndex.indexToJSON(indexOutput);
-		}
+            if (input != null)
+                invertedIndex.index(input);
+            invertedIndex.indexToJSON(indexOutput);
+        }
 
-		if (command.hasFlag(expectedFlags[2])) {
+        if (command.hasFlag(expectedFlags[2])) {
             countOutput = command.getPath(expectedFlags[2], countOutput);
-			if (input != null)
-				invertedIndex.count(input);
-			invertedIndex.countToJSON(countOutput);
-		}
+            if (input != null)
+                invertedIndex.count(input);
+            invertedIndex.countToJSON(countOutput);
+        }
 
-		// calculate time elapsed and output
-		Duration elapsed = Duration.between(start, Instant.now());
-		double seconds = (double) elapsed.toMillis() / Duration.ofSeconds(1).toMillis();
-		System.out.printf("Elapsed: %f seconds%n", seconds);
-	}
+        // calculate time elapsed and output
+        Duration elapsed = Duration.between(start, Instant.now());
+        double seconds = (double) elapsed.toMillis() / Duration.ofSeconds(1).toMillis();
+        System.out.printf("Elapsed: %f seconds%n", seconds);
+    }
 
-	/*
-	 * Generally, "driver" classes are responsible for setting up and calling other
-	 * classes, usually from a main() method that parses command-line parameters. If
-	 * the driver were only responsible for a single class, we use that class name.
-	 * For example, "PizzaDriver" is what we would name a driver class that just
-	 * sets up and calls the "Pizza" class.
-	 */
+    /*
+     * Generally, "driver" classes are responsible for setting up and calling other
+     * classes, usually from a main() method that parses command-line parameters. If
+     * the driver were only responsible for a single class, we use that class name.
+     * For example, "PizzaDriver" is what we would name a driver class that just
+     * sets up and calls the "Pizza" class.
+     */
 }
