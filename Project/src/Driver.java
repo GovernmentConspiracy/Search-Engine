@@ -3,6 +3,24 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
+/*
+ * TODO Remove old TODO comments.
+ */
+
+/*
+ * TODO Address the warnings.
+Collection is a raw type. References to generic type Collection<E> should be parameterized	SimpleJsonWriter.java	/Project/src	line 221	Java Problem
+The import java.util.Arrays is never used	TextParser.java	/Project/src	line 2	Java Problem
+The serializable class  does not declare a static final serialVersionUID field of type long	ArgumentParser.java	/Project/src	line 24	Java Problem
+Unsupported @SuppressWarnings("WeakerAccess")	ArgumentParser.java	/Project/src	line 12	Java Problem
+Unsupported @SuppressWarnings("WeakerAccess")	InvertedIndex.java	/Project/src	line 20	Java Problem
+Unsupported @SuppressWarnings("WeakerAccess")	SimpleJsonWriter.java	/Project/src	line 21	Java Problem
+ */
+
+/*
+ * TODO Try to avoid using a mix of tabs and spaces. Configure your IDE to convert between the two for you.
+ */
+
 /**
  * Class responsible for running this project based on the provided command-line
  * arguments. See the README for details.
@@ -12,6 +30,18 @@ import java.util.*;
  * @version Fall 2019
  */
 public class Driver {
+	
+//TODO  private static final Path INDEX_OUTPUT = Path.of("index.json"); try this instead
+	
+	//TODO Remove the suppress warnings not necessary for Eclipse
+	
+	/*
+	 * TODO Exception handling
+	 * Handle exceptions in the code that interacts with the user.
+	 * Which means Driver.main. All output should be user friendly (no stack traces)
+	 * and informative so what when an error occurs users know exactly what argument
+	 * they provided that caused the problem.
+	 */
 
 	/**
 	 * Initializes the classes necessary based on the provided command-line
@@ -23,17 +53,22 @@ public class Driver {
 	public static void main(String[] args) {
 		// store initial start time
 		Instant start = Instant.now();
-		System.out.println(Arrays.toString(args));
+		System.out.println(Arrays.toString(args)); // TODO Remove
 
         ArgumentParser command = new ArgumentParser(args);
 
-		System.out.println(command);
+		System.out.println(command); // TODO Remove
 
+		/*
+		 * TODO Don't check for expected flags anymore.
+		 */
+		
         String[] expectedFlags = {"-path", "-index", "-counts"};
 		InvertedIndex invertedIndex = new InvertedIndex();
-		Path indexOutput = Path.of("index.json");
+		Path indexOutput = Path.of("index.json"); // TODO Declare where you define and use
 		Path countOutput = Path.of("counts.json");
 		Path input = null;
+		
         if (command.hasValue(expectedFlags[0])) {
 			input = command.getPath(expectedFlags[0]);
 		} else {
