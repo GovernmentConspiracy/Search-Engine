@@ -9,7 +9,6 @@ import java.util.*;
  * @author University of San Francisco
  * @version Fall 2019
  */
-@SuppressWarnings("WeakerAccess")
 public class ArgumentParser {
     /**
      * Stores command-line arguments in key = value pairs.

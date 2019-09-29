@@ -1,7 +1,6 @@
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
 
 /*
  * TODO Remove old TODO comments.
@@ -31,9 +30,8 @@ Unsupported @SuppressWarnings("WeakerAccess")	SimpleJsonWriter.java	/Project/src
  */
 public class Driver {
 
-//TODO  private static final Path INDEX_OUTPUT = Path.of("index.json"); try this instead
-
-    //TODO Remove the suppress warnings not necessary for Eclipse
+    private static final Path DEFAULT_INDEX_PATH = Path.of("index.json"); //try this instead
+    private static final Path DEFAULT_COUNTS_PATH = Path.of("counts.json");
 
     /*
      * TODO Exception handling
@@ -53,11 +51,7 @@ public class Driver {
     public static void main(String[] args) {
         // store initial start time
         Instant start = Instant.now();
-        System.out.println(Arrays.toString(args)); // TODO Remove
-
         ArgumentParser command = new ArgumentParser(args);
-
-        System.out.println(command); // TODO Remove
 
         /*
          * TODO Don't check for expected flags anymore.
@@ -65,8 +59,7 @@ public class Driver {
 
         String[] expectedFlags = {"-path", "-index", "-counts"};
         InvertedIndex invertedIndex = new InvertedIndex();
-        Path indexOutput = Path.of("index.json"); // TODO Declare where you define and use
-        Path countOutput = Path.of("counts.json");
+
         Path input = null;
 
         if (command.hasValue(expectedFlags[0])) {
@@ -77,6 +70,7 @@ public class Driver {
         }
 
         if (command.hasFlag(expectedFlags[1])) {
+            Path indexOutput = DEFAULT_INDEX_PATH;
             indexOutput = command.getPath(expectedFlags[1], indexOutput);
             if (input != null)
                 invertedIndex.index(input);
@@ -84,10 +78,11 @@ public class Driver {
         }
 
         if (command.hasFlag(expectedFlags[2])) {
-            countOutput = command.getPath(expectedFlags[2], countOutput);
+            Path countsOutput = DEFAULT_COUNTS_PATH;
+            countsOutput = command.getPath(expectedFlags[2], countsOutput);
             if (input != null)
                 invertedIndex.count(input);
-            invertedIndex.countToJSON(countOutput);
+            invertedIndex.countToJSON(countsOutput);
         }
 
         // calculate time elapsed and output

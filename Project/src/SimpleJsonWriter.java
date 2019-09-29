@@ -18,7 +18,6 @@ import java.util.*;
  * @author University of San Francisco
  * @version Fall 2019
  */
-@SuppressWarnings("WeakerAccess")
 public final class SimpleJsonWriter {
 
     /**

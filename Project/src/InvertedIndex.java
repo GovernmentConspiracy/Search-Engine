@@ -19,7 +19,6 @@ import java.util.*;
  * @author Jason Liang
  * @version v1.0.4
  */
-@SuppressWarnings("WeakerAccess")
 public class InvertedIndex {
     /**
      * Default SnowballStemmer algorithm from OpenNLP.
