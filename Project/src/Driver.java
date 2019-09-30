@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
@@ -20,27 +21,30 @@ public class Driver {
 	 * The default index path if no path is provided through command line.
 	 */
 	private static final Path INDEX_DEFAULT_PATH = Path.of("index.json");
+
 	/**
 	 * The default counts path if no path is provided through command line.
 	 */
 	private static final Path COUNTS_DEFAULT_PATH = Path.of("counts.json");
+
 	/**
 	 * A string representing the path flag.
 	 * This flag must exist in args in order to run.
 	 */
 	private static final String PATH_FLAG = "-path";
+
 	/**
 	 * A string representing the index flag
 	 */
 	private static final String INDEX_FLAG = "-index";
+
 	/**
 	 * A string representing the counts flag
 	 */
 	private static final String COUNTS_FLAG = "-counts";
 
-
 	/*
-	 * TODO Exception handling
+	 * Note Exception handling
 	 * Handle exceptions in the code that interacts with the user.
 	 * Which means Driver.main. All output should be user friendly (no stack traces)
 	 * and informative so what when an error occurs users know exactly what argument
@@ -70,15 +74,27 @@ public class Driver {
 
 		if (command.hasFlag(INDEX_FLAG)) {
 			Path indexOutput = command.getPath(INDEX_FLAG, INDEX_DEFAULT_PATH);
-			if (input != null)
-				invertedIndex.index(input);
+			if (input != null) {
+				try {
+					invertedIndex.index(input);
+				} catch (IOException e) {
+					System.err.println("Input path for index could not be read. Check if other threads are accessing it.");
+					System.err.println(e.getMessage());
+				}
+			}
 			invertedIndex.indexToJSONSafe(indexOutput);
 		}
 
 		if (command.hasFlag(COUNTS_FLAG)) {
 			Path countsOutput = command.getPath(COUNTS_FLAG, COUNTS_DEFAULT_PATH);
-			if (input != null)
-				invertedIndex.count(input);
+			if (input != null) {
+				try {
+					invertedIndex.count(input);
+				} catch (IOException e) {
+					System.err.println("Input path for counts could not be read. Check if other threads are accessing it.");
+					System.err.println(e.getMessage());
+				}
+			}
 			invertedIndex.countToJSONSafe(countsOutput);
 		}
 		/*-----------------End-----------------*/

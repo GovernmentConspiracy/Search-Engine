@@ -4,10 +4,8 @@ import opennlp.tools.stemmer.snowball.SnowballStemmer;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 // TODO Try to separate file parsing and directory traversing into its own "builder" class. have an addFile(Path path, InvertedIndex index) and maybe a traverse(Path path, InvertedIndex index)
@@ -26,7 +24,6 @@ public class InvertedIndex {
 	 */
 	private static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
 
-
 	/**
 	 * Nested data structure used to store location of where a word was found.
 	 * Outer map stores (key - value) as (word - file location)
@@ -40,7 +37,6 @@ public class InvertedIndex {
 	 */
 	private final Map<String, Long> countMap;
 
-
 	/**
 	 * Constructs a new empty inverted index and can pass in acceptable file extensions
 	 */
@@ -48,7 +44,6 @@ public class InvertedIndex {
 		this.indexMap = new TreeMap<>();
 		this.countMap = new TreeMap<>();
 	}
-
 
 	/**
 	 * Returns all paths of {@code Path input} recursively or an empty list if the files could not be generated.
@@ -81,10 +76,11 @@ public class InvertedIndex {
 	 * storing where a stemmed word was found in a file and position
 	 *
 	 * @param input The file path which populates {@code indexMap}
+	 * @throws IOException if path input could not be read
 	 * @see #indexMap
 	 */
-	public void index(Path input) {
-		List<Path> paths = getFilesOrEmpty(input);
+	public void index(Path input) throws IOException {
+		List<Path> paths = getFiles(input);
 		Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
 		for (Path in : paths) {
 			try (
@@ -97,8 +93,6 @@ public class InvertedIndex {
 						indexPut(stemmer.stem(word).toString(), in.toString(), ++i);
 					}
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
 			}
 		}
 	}
@@ -149,10 +143,11 @@ public class InvertedIndex {
 	 * Populates {@code countMap} with text files of Path input
 	 *
 	 * @param input The file path which populates {@code countMap}
+	 * @throws IOException if path input could not be read
 	 * @see #countMap
 	 */
-	public void count(Path input) { //TODO: Efficient counter will iterate through the pre-made inverse index
-		List<Path> paths = getFilesOrEmpty(input);
+	public void count(Path input) throws IOException { //Note: Efficient counter will iterate through the pre-made inverse index
+		List<Path> paths = getFiles(input);
 		for (Path in : paths) {
 			try (
 					BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
@@ -162,9 +157,6 @@ public class InvertedIndex {
 						.count();
 				if (count > 0)
 					countMap.put(in.toString(), count);
-
-			} catch (Exception e) {
-				e.printStackTrace();
 			}
 		}
 	}
