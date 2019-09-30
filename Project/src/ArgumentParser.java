@@ -19,22 +19,7 @@ public class ArgumentParser {
      * Initializes this argument map.
      */
     public ArgumentParser() {
-        this.map = new HashMap<>() {
-            @Override
-            public Set<String> keySet() {
-                return Collections.unmodifiableSet(super.keySet());
-            }
-
-            @Override
-            public Collection<String> values() {
-                return Collections.unmodifiableCollection(super.values());
-            }
-
-            @Override
-            public Set<Map.Entry<String, String>> entrySet() {
-                return Collections.unmodifiableSet(super.entrySet());
-            }
-        };
+        this.map = new HashMap<>();
     }
 
     /**

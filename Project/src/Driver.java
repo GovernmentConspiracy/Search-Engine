@@ -6,20 +6,6 @@ import java.time.Instant;
  * TODO Remove old TODO comments.
  */
 
-/*
- * TODO Address the warnings.
-Collection is a raw type. References to generic type Collection<E> should be parameterized	SimpleJsonWriter.java	/Project/src	line 221	Java Problem
-The import java.util.Arrays is never used	TextParser.java	/Project/src	line 2	Java Problem
-The serializable class  does not declare a static final serialVersionUID field of type long	ArgumentParser.java	/Project/src	line 24	Java Problem
-Unsupported @SuppressWarnings("WeakerAccess")	ArgumentParser.java	/Project/src	line 12	Java Problem
-Unsupported @SuppressWarnings("WeakerAccess")	InvertedIndex.java	/Project/src	line 20	Java Problem
-Unsupported @SuppressWarnings("WeakerAccess")	SimpleJsonWriter.java	/Project/src	line 21	Java Problem
- */
-
-/*
- * TODO Try to avoid using a mix of tabs and spaces. Configure your IDE to convert between the two for you.
- */
-
 /**
  * Class responsible for running this project based on the provided command-line
  * arguments. See the README for details.
@@ -30,8 +16,28 @@ Unsupported @SuppressWarnings("WeakerAccess")	SimpleJsonWriter.java	/Project/src
  */
 public class Driver {
 
-    private static final Path DEFAULT_INDEX_PATH = Path.of("index.json"); //try this instead
-    private static final Path DEFAULT_COUNTS_PATH = Path.of("counts.json");
+    /**
+     * The default index path if no path is provided through command line.
+     */
+    private static final Path INDEX_DEFAULT_PATH = Path.of("index.json");
+    /**
+     * The default counts path if no path is provided through command line.
+     */
+    private static final Path COUNTS_DEFAULT_PATH = Path.of("counts.json");
+    /**
+     * A string representing the path flag.
+     * This flag must exist in args in order to run.
+     */
+    private static final String PATH_FLAG = "-path";
+    /**
+     * A string representing the index flag
+     */
+    private static final String INDEX_FLAG = "-index";
+    /**
+     * A string representing the counts flag
+     */
+    private static final String COUNTS_FLAG = "-counts";
+
 
     /*
      * TODO Exception handling
@@ -51,39 +57,31 @@ public class Driver {
     public static void main(String[] args) {
         // store initial start time
         Instant start = Instant.now();
+
+        /*-----------------Start-----------------*/
         ArgumentParser command = new ArgumentParser(args);
-
-        /*
-         * TODO Don't check for expected flags anymore.
-         */
-
-        String[] expectedFlags = {"-path", "-index", "-counts"};
         InvertedIndex invertedIndex = new InvertedIndex();
+        Path input;
 
-        Path input = null;
-
-        if (command.hasValue(expectedFlags[0])) {
-            input = command.getPath(expectedFlags[0]);
-        } else {
-            System.out.printf("Program arguments %s is required\n", expectedFlags[0]);
+        if ((input = command.getPath(PATH_FLAG)) == null) {
+            System.out.printf("Program arguments %s is required\n", PATH_FLAG);
             System.out.println("Ex:\n -path \"project-tests/huckleberry.txt\"\n");
         }
 
-        if (command.hasFlag(expectedFlags[1])) {
-            Path indexOutput = DEFAULT_INDEX_PATH;
-            indexOutput = command.getPath(expectedFlags[1], indexOutput);
+        if (command.hasFlag(INDEX_FLAG)) {
+            Path indexOutput = command.getPath(INDEX_FLAG, INDEX_DEFAULT_PATH);
             if (input != null)
                 invertedIndex.index(input);
-            invertedIndex.indexToJSON(indexOutput);
+            invertedIndex.indexToJSONSafe(indexOutput);
         }
 
-        if (command.hasFlag(expectedFlags[2])) {
-            Path countsOutput = DEFAULT_COUNTS_PATH;
-            countsOutput = command.getPath(expectedFlags[2], countsOutput);
+        if (command.hasFlag(COUNTS_FLAG)) {
+            Path countsOutput = command.getPath(COUNTS_FLAG, COUNTS_DEFAULT_PATH);
             if (input != null)
                 invertedIndex.count(input);
-            invertedIndex.countToJSON(countsOutput);
+            invertedIndex.countToJSONSafe(countsOutput);
         }
+        /*-----------------End-----------------*/
 
         // calculate time elapsed and output
         Duration elapsed = Duration.between(start, Instant.now());

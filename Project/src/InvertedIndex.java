@@ -25,10 +25,6 @@ public class InvertedIndex {
      */
     private static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
 
-    /**
-     * String array representing the default acceptable file extensions.
-     */
-    private static final String[] DEFAULT_ACCEPTABLE_FILES = {".txt", ".text"};
 
     /**
      * Nested data structure used to store location of where a word was found.
@@ -43,40 +39,21 @@ public class InvertedIndex {
      */
     private final Map<String, Long> countMap;
 
-    /**
-     * String array representing acceptable file extensions. Default is set to DEFAULT_ACCEPTABLE_FILES
-     *
-     * @see #DEFAULT_ACCEPTABLE_FILES
-     */
-    private final String[] acceptableFileExtensions;
 
     /**
      * Constructs a new empty inverted index and can pass in acceptable file extensions
-     *
-     * @param acceptableFileExtensions array of file extensions which are acceptable to read
-     */
-    public InvertedIndex(String... acceptableFileExtensions) {
-        this.indexMap = new TreeMap<>();
-        this.countMap = new TreeMap<>();
-        this.acceptableFileExtensions = acceptableFileExtensions;
-        //Arrays.stream(this.acceptableFileExtensions).forEach(System.out::println);
-    }
-
-    /**
-     * Constructs a new empty inverted index with default file extensions
-     *
-     * @see #InvertedIndex(String...)
      */
     public InvertedIndex() {
-        this(DEFAULT_ACCEPTABLE_FILES);
+        this.indexMap = new TreeMap<>();
+        this.countMap = new TreeMap<>();
     }
+
 
     /**
      * Returns all paths of {@code Path input} recursively or an empty list if the files could not be generated.
      *
      * @param input The root directory or text tile
      * @return A list of paths of the entire directory of {@code Path input} or 0-1 text file(s)
-     * @see #getFiles(List, Path)
      */
     public static List<Path> getFilesOrEmpty(Path input) {
         try {
@@ -87,51 +64,15 @@ public class InvertedIndex {
         return Collections.emptyList();
     }
 
-    //TODO: replace with Files.read() or Files.find()
-
     /**
      * Returns all paths of {@code Path} input recursively.
      *
      * @param input The root directory or text tile
      * @return A list of non-directory files of the entire directory of {@code Path input}
      * @throws IOException if the stream could not be made or if {@code Path input} does not exist
-     * @see #getFiles(List, Path)
      */
     public static List<Path> getFiles(Path input) throws IOException {
-        List<Path> paths = new ArrayList<>();
-        getFiles(paths, input);
-        return paths;
-    }
-
-    /**
-     * Helper method for getFiles() to generate a list of paths ({@code List<Path> paths}),
-     * containing all non-directory files in that directory and its subdirectories.
-     *
-     * @param paths Parameter being edited
-     * @param input The current path, either directory or file
-     * @throws IOException if the stream could not be made or if {@code Path input}  does not exist
-     * @see #getFiles(Path)
-     */
-    private static void getFiles(List<Path> paths, Path input) throws IOException {
-        if (!Files.exists(input)) {
-            String sb = "Could not retrieve Path \"" +
-                    input.toString() +
-                    "\" in directory \"" +
-                    Paths.get("").toAbsolutePath().toString() +
-                    "\".";
-            throw new IOException(sb);
-        }
-        if (Files.isDirectory(input)) {
-            try (
-                    DirectoryStream<Path> stream = Files.newDirectoryStream(input)
-            ) {
-                for (Path path : stream) {
-                    getFiles(paths, path);
-                }
-            }
-        } else {
-            paths.add(input);
-        }
+        return TextFileFinder.list(input);
     }
 
     /**
@@ -145,20 +86,18 @@ public class InvertedIndex {
         List<Path> paths = getFilesOrEmpty(input);
         Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
         for (Path in : paths) {
-            if (isCorrectExtension(in)) {
-                try (
-                        BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
-                ) {
-                    String line;
-                    int i = 0;
-                    while ((line = reader.readLine()) != null) {
-                        for (String word : TextParser.parse(line)) {
-                            indexPut(stemmer.stem(word).toString(), in.toString(), ++i);
-                        }
+            try (
+                    BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
+            ) {
+                String line;
+                int i = 0;
+                while ((line = reader.readLine()) != null) {
+                    for (String word : TextParser.parse(line)) {
+                        indexPut(stemmer.stem(word).toString(), in.toString(), ++i);
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
@@ -181,17 +120,29 @@ public class InvertedIndex {
      * Generates a JSON text file of the inverted index, stored at Path output
      *
      * @param output The output path to store the JSON object
-     * @see #count(Path)
+     * @throws IOException if the output file could not be created or written
+     * @see #index(Path)
      */
-    public void indexToJSON(Path output) {
+    public void indexToJSON(Path output) throws IOException {
         mapToJSON(indexMap, output);
     }
-    
-    /* TODO
+
+    /**
+     * Generates a JSON text file of the inverted index, stored at Path output
+     *
+     * @param output The output path to store the JSON object
+     * @return {@code true} if successful in creating a JSON file
+     * @see #index(Path)
+     * @see #indexToJSON(Path)
+     */
     public boolean indexToJSONSafe(Path output) {
-    	return false if an exception happened
+        try {
+            indexToJSON(output);
+        } catch (IOException e) {
+            return false;
+        }
+        return true;
     }
-    */
 
     /**
      * Populates {@code countMap} with text files of Path input
@@ -202,19 +153,17 @@ public class InvertedIndex {
     public void count(Path input) { //TODO: Efficient counter will iterate through the pre-made inverse index
         List<Path> paths = getFilesOrEmpty(input);
         for (Path in : paths) {
-            if (isCorrectExtension(in)) {
-                try (
-                        BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
-                ) {
-                    long count = reader.lines()
-                            .flatMap(line -> Arrays.stream(TextParser.parse(line)))
-                            .count();
-                    if (count > 0)
-                        countMap.put(in.toString(), count);
+            try (
+                    BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
+            ) {
+                long count = reader.lines()
+                        .flatMap(line -> Arrays.stream(TextParser.parse(line)))
+                        .count();
+                if (count > 0)
+                    countMap.put(in.toString(), count);
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
@@ -223,10 +172,28 @@ public class InvertedIndex {
      * Generates a JSON text file of the count of words, stored at Path output
      *
      * @param output The output path to store the JSON object
+     * @throws IOException if the output file could not be created or written
      * @see #count(Path)
      */
-    public void countToJSON(Path output) {
+    public void countToJSON(Path output) throws IOException {
         mapToJSON(countMap, output);
+    }
+
+    /**
+     * Generates a JSON text file of the count of words, stored at Path output
+     *
+     * @param output The output path to store the JSON object
+     * @return {@code true} if successful in creating a JSON file
+     * @see #index(Path)
+     * @see #indexToJSON(Path)
+     */
+    public boolean countToJSONSafe(Path output) {
+        try {
+            countToJSON(output);
+        } catch (IOException e) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -234,45 +201,15 @@ public class InvertedIndex {
      *
      * @param map    A map with key string to be converted as a generic object
      * @param output The output path of the JSON file
+     * @throws IOException if the output file could not be created or written
      * @see #index(Path)
      * @see #count(Path)
      */
-    private void mapToJSON(Map<String, ?> map, Path output) {
-        try {
-            SimpleJsonWriter.asObject(map, output);
-        } catch (IOException e) {
-            System.err.printf("Could not write into Path \"%s\"\n", output.toString());
-            System.err.println(e.getMessage());
-        }
+    private void mapToJSON(Map<String, ?> map, Path output) throws IOException {
+        SimpleJsonWriter.asObject(map, output);
+//        } catch (IOException e) {
+//            System.err.printf("Could not write into Path \"%s\"\n", output.toString());
+//            System.err.println(e.getMessage());
+//        }
     }
-
-    //TODO: replace with latest homework's extension checker
-
-    /**
-     * The jankiest file extension checker. I'm so sorry
-     *
-     * @param input A non-directory file path
-     * @return {@code true} if acceptableFileExtensions is empty or if path Input is one of the extensions
-     * @see #index(Path)
-     */
-    private boolean isCorrectExtension(Path input) { //Could have prechecked in #getFiles(Path), but I wanted to conserve its static declaration
-        if (acceptableFileExtensions == null || acceptableFileExtensions.length == 0) {
-            return true;
-        }
-        //trims input string, leaving index of last '/' till the end
-        String inputString = input.toString();
-        int lastSlash = Math.max(inputString.lastIndexOf('/'), 0);
-        inputString = inputString.substring(lastSlash).toLowerCase();
-//        System.out.println(inputString);
-        for (String extension : acceptableFileExtensions) {
-            int i = inputString.lastIndexOf(extension);
-            if (i == inputString.length() - extension.length()) {
-                return true;
-            }
-        }
-//        System.out.printf("Failed %s\n\n", inputString);
-        return false;
-    }
-
-
 }

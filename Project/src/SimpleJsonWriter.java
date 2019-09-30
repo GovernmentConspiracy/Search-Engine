@@ -208,7 +208,7 @@ public final class SimpleJsonWriter {
         var type = element.getValue();
         //Why is there no switch case for this??
         if (type instanceof Collection<?>) {
-            asDependentGenericArray((Collection) type, writer, level + 1);
+            asDependentGenericArray((Collection<?>) type, writer, level + 1);
         } else if (type instanceof Map<?, ?>) {
             asDependentGenericObject((Map<?, ?>) type, writer, level + 1);
         } else {
