@@ -43,14 +43,6 @@ public class Driver {
 	 */
 	private static final String COUNTS_FLAG = "-counts";
 
-	/*
-	 * Note Exception handling
-	 * Handle exceptions in the code that interacts with the user.
-	 * Which means Driver.main. All output should be user friendly (no stack traces)
-	 * and informative so what when an error occurs users know exactly what argument
-	 * they provided that caused the problem.
-	 */
-
 	/**
 	 * Initializes the classes necessary based on the provided command-line
 	 * arguments. This includes (but is not limited to) how to build or search an
@@ -82,7 +74,15 @@ public class Driver {
 					System.err.println(e.getMessage());
 				}
 			}
-			invertedIndex.indexToJSONSafe(indexOutput);
+			try {
+				invertedIndex.indexToJSON(input);
+			} catch (IOException e) {
+				System.err.println("Output path for index could not be written.");
+				System.err.printf("Check if path (%s) is writable (i.e is not a directory)\n", indexOutput);
+				System.err.println(e.getMessage());
+				System.err.println();
+			}
+
 		}
 
 		if (command.hasFlag(COUNTS_FLAG)) {
@@ -95,7 +95,14 @@ public class Driver {
 					System.err.println(e.getMessage());
 				}
 			}
-			invertedIndex.countToJSONSafe(countsOutput);
+			try {
+				invertedIndex.countToJSON(input);
+			} catch (IOException e) {
+				System.err.println("Output path for counts could not be written.");
+				System.err.printf("Check if path (%s) is writable (i.e is not a directory)\n", countsOutput);
+				System.err.println(e.getMessage());
+				System.err.println();
+			}
 		}
 		/*-----------------End-----------------*/
 
