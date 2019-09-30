@@ -75,7 +75,7 @@ public class Driver {
 				}
 			}
 			try {
-				invertedIndex.indexToJSON(input);
+				invertedIndex.indexToJSON(indexOutput);
 			} catch (IOException e) {
 				System.err.println("Output path for index could not be written.");
 				System.err.printf("Check if path (%s) is writable (i.e is not a directory)\n", indexOutput);
@@ -96,7 +96,7 @@ public class Driver {
 				}
 			}
 			try {
-				invertedIndex.countToJSON(input);
+				invertedIndex.countToJSON(countsOutput);
 			} catch (IOException e) {
 				System.err.println("Output path for counts could not be written.");
 				System.err.printf("Check if path (%s) is writable (i.e is not a directory)\n", countsOutput);
