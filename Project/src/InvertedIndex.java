@@ -8,15 +8,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-// TODO Try to separate file parsing and directory traversing into its own "builder" class. have an addFile(Path path, InvertedIndex index) and maybe a traverse(Path path, InvertedIndex index)
-// TODO Ask how to do that: Attempted to place it in
-
 /**
  * An index to store words and the location (both file location and position in file) of where those words were found.
- * Auxiliary functions includes word counter and JSON writer
+ * <p>Auxiliary functions includes word counter and JSON writer
  *
  * @author Jason Liang
- * @version v1.0.4
+ * @version v1.0.5
  */
 public class InvertedIndex {
 	/**
@@ -46,32 +43,6 @@ public class InvertedIndex {
 	}
 
 	/**
-	 * Returns all paths of {@code Path input} recursively or an empty list if the files could not be generated.
-	 *
-	 * @param input The root directory or text tile
-	 * @return A list of paths of the entire directory of {@code Path input} or 0-1 text file(s)
-	 */
-	public static List<Path> getFilesOrEmpty(Path input) {
-		try {
-			return getFiles(input);
-		} catch (IOException e) {
-			System.err.println(e.getMessage());
-		}
-		return Collections.emptyList();
-	}
-
-	/**
-	 * Returns all paths of {@code Path} input recursively.
-	 *
-	 * @param input The root directory or text tile
-	 * @return A list of non-directory files of the entire directory of {@code Path input}
-	 * @throws IOException if the stream could not be made or if {@code Path input} does not exist
-	 */
-	public static List<Path> getFiles(Path input) throws IOException {
-		return TextFileFinder.list(input);
-	}
-
-	/**
 	 * Generates word - path - location pairs onto a nested map structure,
 	 * storing where a stemmed word was found in a file and position
 	 *
@@ -80,21 +51,19 @@ public class InvertedIndex {
 	 * @see #indexMap
 	 */
 	public void index(Path input) throws IOException {
-		List<Path> paths = getFiles(input);
 		Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
-		for (Path in : paths) {
-			try (
-					BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
-			) {
-				String line;
-				int i = 0;
-				while ((line = reader.readLine()) != null) {
-					for (String word : TextParser.parse(line)) {
-						indexPut(stemmer.stem(word).toString(), in.toString(), ++i);
-					}
+		try (
+				BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
+		) {
+			String line;
+			int i = 0;
+			while ((line = reader.readLine()) != null) {
+				for (String word : TextParser.parse(line)) {
+					indexPut(stemmer.stem(word).toString(), input.toString(), ++i);
 				}
 			}
 		}
+
 	}
 
 	/**
@@ -147,7 +116,7 @@ public class InvertedIndex {
 	 * @see #countMap
 	 */
 	public void count(Path input) throws IOException { //Note: Efficient counter will iterate through the pre-made inverse index
-		List<Path> paths = getFiles(input);
+		List<Path> paths = InvertedIndexBuilder.getFiles(input); //Nasty change
 		for (Path in : paths) {
 			try (
 					BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)

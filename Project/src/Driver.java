@@ -101,7 +101,6 @@ public class Driver {
 				System.err.println("Output path for counts could not be written.");
 				System.err.printf("Check if path (%s) is writable (i.e is not a directory)\n", countsOutput);
 				System.err.println(e.getMessage());
-				System.err.println();
 			}
 		}
 		/*-----------------End-----------------*/
