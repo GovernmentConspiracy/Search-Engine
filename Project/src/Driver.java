@@ -56,26 +56,25 @@ public class Driver {
 
 		/*-----------------Start-----------------*/
 		ArgumentParser command = new ArgumentParser(args);
-		InvertedIndex invertedIndex = new InvertedIndex();
+		InvertedIndexBuilder index = new InvertedIndexBuilder();
 		Path input;
 
-		if ((input = command.getPath(PATH_FLAG)) == null) {
+		if ((input = command.getPath(PATH_FLAG)) != null) {
+			try {
+				index.transverse(input);
+			} catch (IOException e) {
+				System.err.println("Input path for index could not be read. Check if other threads are accessing it.");
+				System.err.println(e.getMessage());
+			}
+		} else {
 			System.out.printf("Program arguments %s is required\n", PATH_FLAG);
 			System.out.println("Ex:\n -path \"project-tests/huckleberry.txt\"\n");
 		}
 
 		if (command.hasFlag(INDEX_FLAG)) {
 			Path indexOutput = command.getPath(INDEX_FLAG, INDEX_DEFAULT_PATH);
-			if (input != null) {
-				try {
-					invertedIndex.index(input);
-				} catch (IOException e) {
-					System.err.println("Input path for index could not be read. Check if other threads are accessing it.");
-					System.err.println(e.getMessage());
-				}
-			}
 			try {
-				invertedIndex.indexToJSON(indexOutput);
+				index.indexToJSON(indexOutput);
 			} catch (IOException e) {
 				System.err.println("Output path for index could not be written.");
 				System.err.printf("Check if path (%s) is writable (i.e is not a directory)\n", indexOutput);
@@ -87,16 +86,8 @@ public class Driver {
 
 		if (command.hasFlag(COUNTS_FLAG)) {
 			Path countsOutput = command.getPath(COUNTS_FLAG, COUNTS_DEFAULT_PATH);
-			if (input != null) {
-				try {
-					invertedIndex.count(input);
-				} catch (IOException e) {
-					System.err.println("Input path for counts could not be read. Check if other threads are accessing it.");
-					System.err.println(e.getMessage());
-				}
-			}
 			try {
-				invertedIndex.countToJSON(countsOutput);
+				index.countToJSON(countsOutput);
 			} catch (IOException e) {
 				System.err.println("Output path for counts could not be written.");
 				System.err.printf("Check if path (%s) is writable (i.e is not a directory)\n", countsOutput);

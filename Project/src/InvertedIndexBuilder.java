@@ -4,18 +4,17 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * UNUSED:
  * A builder class for inverted index, which is an index to store words and
  * the location (both file location and position in file) of where those words were found.
  *
  * @author Jason Liang
- * @version v1.0.5
+ * @version v1.1.0
  */
 public class InvertedIndexBuilder {
 	/**
 	 * An index to store words and the location (both file location and position in file) of where those words were found.
 	 */
-	private InvertedIndex index;
+	private final InvertedIndex index;
 
 	/**
 	 * Constructs a InvertedIndex builder of an existing index
@@ -113,5 +112,25 @@ public class InvertedIndexBuilder {
 	 */
 	public InvertedIndex getIndex() {
 		return index;
+	}
+
+	/**
+	 * Generates a JSON text file of the inverted index, stored at Path output
+	 *
+	 * @param output The output path to store the JSON object
+	 * @throws IOException if the output file could not be created or written
+	 */
+	public void indexToJSON(Path output) throws IOException {
+		index.indexToJSON(output);
+	}
+
+	/**
+	 * Generates a JSON text file of the count of words, stored at Path output
+	 *
+	 * @param output The output path to store the JSON object
+	 * @throws IOException if the output file could not be created or written
+	 */
+	public void countToJSON(Path output) throws IOException {
+		index.countToJSON(output);
 	}
 }

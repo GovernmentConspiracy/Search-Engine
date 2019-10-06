@@ -13,7 +13,7 @@ import java.util.*;
  * <p>Auxiliary functions includes word counter and JSON writer
  *
  * @author Jason Liang
- * @version v1.0.5
+ * @version v1.1.0
  */
 public class InvertedIndex {
 	/**
@@ -26,7 +26,7 @@ public class InvertedIndex {
 	 * Outer map stores (key - value) as (word - file location)
 	 * Inner map stores (key - value) as (file location - position in file)
 	 */
-	private final Map<String, Map<String, Set<Integer>>> indexMap; //String1 = word, String2 = Path, Set1 = Location
+	private final Map<String, Map<String, Set<Long>>> indexMap; //String1 = word, String2 = Path, Set1 = Location
 
 	/**
 	 * Nested data structure used to store word count of a file
@@ -56,12 +56,14 @@ public class InvertedIndex {
 				BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
 		) {
 			String line;
-			int i = 0;
+			long i = 0;
 			while ((line = reader.readLine()) != null) {
 				for (String word : TextParser.parse(line)) {
 					indexPut(stemmer.stem(word).toString(), input.toString(), ++i);
 				}
 			}
+			if (i > 0)
+				countMap.put(input.toString(), i); //writes into count map
 		}
 
 	}
@@ -71,10 +73,10 @@ public class InvertedIndex {
 	 *
 	 * @param word       A word made from a stemmed string. Used as the outer map key
 	 * @param pathString A string representing the path where {@code word} in string form. Used as inner map key
-	 * @param location   An int representing the location of where {@code word} was found in {@code pathString}
+	 * @param location   An long representing the location of where {@code word} was found in {@code pathString}
 	 * @see #index(Path)
 	 */
-	private void indexPut(String word, String pathString, int location) {
+	private void indexPut(String word, String pathString, long location) {
 		indexMap.putIfAbsent(word, new TreeMap<>());
 		indexMap.get(word).putIfAbsent(pathString, new TreeSet<>());
 		indexMap.get(word).get(pathString).add(location);
@@ -107,35 +109,36 @@ public class InvertedIndex {
 		}
 		return true;
 	}
-
-	/**
-	 * Populates {@code countMap} with text files of Path input
-	 *
-	 * @param input The file path which populates {@code countMap}
-	 * @throws IOException if path input could not be read
-	 * @see #countMap
-	 */
-	public void count(Path input) throws IOException { //Note: Efficient counter will iterate through the pre-made inverse index
-		List<Path> paths = InvertedIndexBuilder.getFiles(input); //Nasty change
-		for (Path in : paths) {
-			try (
-					BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
-			) {
-				long count = reader.lines()
-						.flatMap(line -> Arrays.stream(TextParser.parse(line)))
-						.count();
-				if (count > 0)
-					countMap.put(in.toString(), count);
-			}
-		}
-	}
+//
+//	/**
+//	 * DEPRECIATED since v1.1.0
+//	 * Populates {@code countMap} with text files of Path input
+//	 *
+//	 * @param input The file path which populates {@code countMap}
+//	 * @throws IOException if path input could not be read
+//	 * @see #countMap
+//	 */
+//	public void countIfEmpty(Path input) throws IOException { //Note: Efficient counter will iterate through the pre-made inverse index
+//		List<Path> paths = InvertedIndexBuilder.getFiles(input); //Nasty change
+//		for (Path in : paths) {
+//			try (
+//					BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
+//			) {
+//				long count = reader.lines()
+//						.flatMap(line -> Arrays.stream(TextParser.parse(line)))
+//						.count();
+//				if (count > 0)
+//					countMap.put(in.toString(), count);
+//			}
+//		}
+//	}
 
 	/**
 	 * Generates a JSON text file of the count of words, stored at Path output
 	 *
 	 * @param output The output path to store the JSON object
 	 * @throws IOException if the output file could not be created or written
-	 * @see #count(Path)
+	 * @see #index(Path)
 	 */
 	public void countToJSON(Path output) throws IOException {
 		mapToJSON(countMap, output);
@@ -164,8 +167,6 @@ public class InvertedIndex {
 	 * @param map    A map with key string to be converted as a generic object
 	 * @param output The output path of the JSON file
 	 * @throws IOException if the output file could not be created or written
-	 * @see #index(Path)
-	 * @see #count(Path)
 	 */
 	private void mapToJSON(Map<String, ?> map, Path output) throws IOException {
 		SimpleJsonWriter.asObject(map, output);
