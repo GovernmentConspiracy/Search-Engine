@@ -9,8 +9,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.nio.file.FileVisitOption.FOLLOW_LINKS;
-
 /**
  * A utility class for finding all text files in a directory using lambda
  * functions and streams.
@@ -83,7 +81,7 @@ public final class TextFileFinder {
 	 * @see Integer#MAX_VALUE
 	 */
 	public static Stream<Path> find(Path start) throws IOException {
-		return Files.find(start, DEFAULT_DEPTH, IS_TEXT_ATTR, FOLLOW_LINKS);
+		return Files.find(start, DEFAULT_DEPTH, IS_TEXT_ATTR, FileVisitOption.FOLLOW_LINKS);
 	}
 
 	/**

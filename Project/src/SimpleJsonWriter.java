@@ -130,8 +130,6 @@ public final class SimpleJsonWriter {
 		} else {
 			indent(element.toString(), writer, level + 1);
 		}
-
-
 	}
 
 	/**
@@ -191,7 +189,7 @@ public final class SimpleJsonWriter {
 	 * @throws IOException if file is not found
 	 * @see #asObject(Map, Writer, int)
 	 */
-	private static void asDependentObject(Collection<? extends Map.Entry<?, ?>> elements, Writer writer, int level) throws IOException {
+	private static void asDependentObject(Set<? extends Map.Entry<?, ?>> elements, Writer writer, int level) throws IOException {
 		var elemIterator = elements.iterator();
 		writer.write('{');
 
