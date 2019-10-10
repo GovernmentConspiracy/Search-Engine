@@ -2,7 +2,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
-
+//TODO refactor whole builder class to accept Query
 /**
  * A builder class for inverted index, which is an index to store words and
  * the location (both file location and position in file) of where those words were found.
