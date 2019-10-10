@@ -20,7 +20,7 @@ public class Query {
 	/**
 	 * Search results
 	 */
-	private class SearchResult implements Comparable<SearchResult> {
+	public class SearchResult implements Comparable<SearchResult> {
 		private String search;
 		private String where;
 		private Long count;
@@ -44,6 +44,22 @@ public class Query {
 				}
 			}
 			return temp;
+		}
+
+		public String getSearch() {
+			return search;
+		}
+
+		public String getWhere() {
+			return where;
+		}
+
+		public Long getCount() {
+			return count;
+		}
+
+		public Double getScore() {
+			return score;
 		}
 	}
 }
