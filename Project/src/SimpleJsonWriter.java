@@ -73,6 +73,7 @@ public final class SimpleJsonWriter {
 			asArray(elements, writer, 0);
 			return writer.toString();
 		} catch (IOException e) {
+			//TODO logger
 //            System.out.println("Could not generate a String");
 			return null;
 		}
@@ -118,7 +119,6 @@ public final class SimpleJsonWriter {
 	 * @throws IOException if file is not found
 	 */
 	private static <V> void asArrayVariable(V element, Writer writer, int level) throws IOException {
-
 		if (element instanceof Map<?, ?>) {
 			indent(writer, level + 1);
 			asDependentObject((Map<?, ?>) element, writer, level + 1);
@@ -145,6 +145,7 @@ public final class SimpleJsonWriter {
 			asObject(elements, writer, 0);
 			return writer.toString();
 		} catch (IOException e) {
+			//TODO logger
 			return null;
 		}
 	}

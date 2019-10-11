@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * An index to store words and the location (both file location and position in file) of where those words were found.
@@ -105,9 +106,18 @@ public class InvertedIndex {
 		try {
 			indexToJSON(output);
 		} catch (IOException e) {
+			//TODO logger
 			return false;
 		}
 		return true;
+	}
+
+	public Map<String, Long> getFileCount(String word) {
+		return indexMap.get(word).entrySet()
+				.stream()
+				.collect(
+						Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> Long.valueOf(e.getValue().size()))
+				);
 	}
 //
 //	/**
@@ -156,6 +166,7 @@ public class InvertedIndex {
 		try {
 			countToJSON(output);
 		} catch (IOException e) {
+			//TODO logger
 			return false;
 		}
 		return true;
@@ -174,5 +185,66 @@ public class InvertedIndex {
 //            System.err.printf("Could not write into Path \"%s\"\n", output.toString());
 //            System.err.println(e.getMessage());
 //        }
+	}
+
+	/**
+	 * Search results
+	 */
+	public class SearchResult implements Comparable<SearchResult> {
+		//		private String search;
+		private String where;
+		private Long count;
+		private Double score;
+
+		private static final String FORMATTED =
+				"{\n\twhere: \"%s\"\n\tcount: %d\n\tscore: %f\n}";
+
+		public SearchResult(String where, Long count, Double score) {
+			this.where = where;
+			this.count = count;
+			this.score = score;
+		}
+
+//		public SearchResult(String search, String where, Long count, Double score) {
+//			this.search = search;
+//			this.where = where;
+//			this.count = count;
+//			this.score = score;
+//		}
+
+//		public String getSearch() {
+//			return search;
+//		}
+
+		public String getWhere() {
+			return where;
+		}
+
+		public Long getCount() {
+			return count;
+		}
+
+		public Double getScore() {
+			return score;
+		}
+
+		@Override
+		public int compareTo(SearchResult other) {
+			int temp;
+			if ((temp = Double.compare(this.score, other.score)) == 0) {
+				if ((temp = Long.compare(this.count, other.count)) == 0) {
+					return this.where.compareTo(other.where);
+//					if ((temp = this.where.compareTo(other.where)) == 0) {
+//						return 0;
+//					}
+				}
+			}
+			return temp;
+		}
+
+		@Override
+		public String toString() {
+			return String.format(FORMATTED, where, count, score);
+		}
 	}
 }
