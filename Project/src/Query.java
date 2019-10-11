@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.file.Path;
 import java.util.*;
@@ -81,28 +82,14 @@ public class Query {
 		}
 
 		public String toJSONObjectString(int indent) {
-			StringBuilder str = new StringBuilder();
-			for (int i = 1; i <= indent; i++) {
-				str.append('\t');
+			try {
+				StringWriter writer = new StringWriter();
+				this.toJSON(writer, indent);
+				return writer.toString();
+			} catch (IOException e) {
+				//TODO logger
+				return null;
 			}
-			str.append("{\n");
-			for (int i = 1; i <= indent + 1; i++) {
-				str.append('\t');
-			}
-			str.append("\"where\": ").append('\"').append(where).append("\",\n");
-			for (int i = 1; i <= indent + 1; i++) {
-				str.append('\t');
-			}
-			str.append("\"count\": ").append(count).append(",\n");
-			for (int i = 1; i <= indent + 1; i++) {
-				str.append('\t');
-			}
-			str.append("\"score\": ").append(String.format(SCORE_FORMAT, score)).append('\n');
-			for (int i = 1; i <= indent; i++) {
-				str.append('\t');
-			}
-			str.append('}');
-			return str.toString();
 		}
 
 		@Override

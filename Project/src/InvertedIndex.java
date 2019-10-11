@@ -156,29 +156,6 @@ public class InvertedIndex {
 	public Map<String, Long> getCounts() {
 		return Collections.unmodifiableMap(countMap);
 	}
-//
-//	/**
-//	 * DEPRECIATED since v1.1.0
-//	 * Populates {@code countMap} with text files of Path input
-//	 *
-//	 * @param input The file path which populates {@code countMap}
-//	 * @throws IOException if path input could not be read
-//	 * @see #countMap
-//	 */
-//	public void countIfEmpty(Path input) throws IOException { //Note: Efficient counter will iterate through the pre-made inverse index
-//		List<Path> paths = InvertedIndexBuilder.getFiles(input); //Nasty change
-//		for (Path in : paths) {
-//			try (
-//					BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
-//			) {
-//				long count = reader.lines()
-//						.flatMap(line -> Arrays.stream(TextParser.parse(line)))
-//						.count();
-//				if (count > 0)
-//					countMap.put(in.toString(), count);
-//			}
-//		}
-//	}
 
 	/**
 	 * Generates a JSON text file of the count of words, stored at Path output
@@ -218,10 +195,6 @@ public class InvertedIndex {
 	 */
 	private void mapToJSON(Map<String, ?> map, Path output) throws IOException {
 		SimpleJsonWriter.asObject(map, output);
-//        } catch (IOException e) {
-//            System.err.printf("Could not write into Path \"%s\"\n", output.toString());
-//            System.err.println(e.getMessage());
-//        }
 	}
 
 
