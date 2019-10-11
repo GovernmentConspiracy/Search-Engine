@@ -87,7 +87,7 @@ public class SearchBuilder {
 	 * Generates a JSON text file of the inverted index, stored at Path output
 	 *
 	 * @param output The output path to store the JSON object
-	 * @param index the index to be filled
+	 * @param index  the index to be filled
 	 * @throws IOException if the output file could not be created or written
 	 */
 	public static void indexToJSON(Path output, InvertedIndex index) throws IOException {
@@ -98,7 +98,7 @@ public class SearchBuilder {
 	 * Generates a JSON text file of the count of words, stored at Path output
 	 *
 	 * @param output The output path to store the JSON object
-	 * @param index the index to be filled
+	 * @param index  the index to be filled
 	 * @throws IOException if the output file could not be created or written
 	 */
 	public static void countToJSON(Path output, InvertedIndex index) throws IOException {
@@ -124,8 +124,8 @@ public class SearchBuilder {
 			String line;
 			final Map<String, Long> counts = index.getCounts(); //read only
 			while ((line = reader.readLine()) != null) {
-				Set<String> usedPhrases = new TreeSet<>();
-				Map<String, Long> fileCount = new TreeMap<>();
+				Set<String> usedPhrases = new TreeSet<>(); //used to create finalString and stop duplicates
+				Map<String, Long> fileCount = new TreeMap<>(); //Used to merge all files
 				for (String word : TextParser.parse(line)) {
 					String phrase = stemmer.stem(word).toString();
 
@@ -136,6 +136,7 @@ public class SearchBuilder {
 					}
 				}
 				String lineFinal = String.join(" ", usedPhrases);
+
 				if (!fileCount.isEmpty()) {
 					fileCount.forEach((key, value) -> query.addQuery(
 							lineFinal, key, value, counts.get(key)));

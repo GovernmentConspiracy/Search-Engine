@@ -34,30 +34,20 @@ public class Query {
 	 * Search results
 	 */
 	public static class SearchResult implements Comparable<SearchResult>, JSONObject {
-		//		private String search;
+
 		private String where;
 		private Long count;
 		private Double score;
 
+		private static String SCORE_FORMAT = "%.8f";
 		private static final String FORMATTED =
-				"{\n\twhere: \"%s\",\n\tcount: %d,\n\tscore: %f\n}";
+				"{\n\twhere: \"%s\",\n\tcount: %d,\n\tscore: %s\n}";
 
 		public SearchResult(String where, Long count, Double score) {
 			this.where = where;
 			this.count = count;
 			this.score = score;
 		}
-
-//		public SearchResult(String search, String where, Long count, Double score) {
-//			this.search = search;
-//			this.where = where;
-//			this.count = count;
-//			this.score = score;
-//		}
-
-//		public String getSearch() {
-//			return search;
-//		}
 
 		public String getWhere() {
 			return where;
@@ -87,7 +77,7 @@ public class Query {
 
 		@Override
 		public String toString() {
-			return String.format(FORMATTED, where, count, score);
+			return String.format(FORMATTED, where, count, String.format(SCORE_FORMAT, score));
 		}
 
 		public String toJSONObjectString(int indent) {
@@ -100,7 +90,6 @@ public class Query {
 				str.append('\t');
 			}
 			str.append("\"where\": ").append('\"').append(where).append("\",\n");
-
 			for (int i = 1; i <= indent + 1; i++) {
 				str.append('\t');
 			}
@@ -108,12 +97,34 @@ public class Query {
 			for (int i = 1; i <= indent + 1; i++) {
 				str.append('\t');
 			}
-			str.append("\"score\": ").append(String.format("%.8f", score)).append('\n');
+			str.append("\"score\": ").append(String.format(SCORE_FORMAT, score)).append('\n');
 			for (int i = 1; i <= indent; i++) {
 				str.append('\t');
 			}
 			str.append('}');
 			return str.toString();
 		}
+
+		@Override
+		public void toJSON(Writer writer, int indent) throws IOException {
+			SimpleJsonWriter.indent(writer, indent);
+			writer.write("{\n");
+			SimpleJsonWriter.indent(writer, indent + 1);
+			writer.write("\"where\": ");
+			SimpleJsonWriter.quote(where, writer);
+			writer.write(",\n");
+			SimpleJsonWriter.indent(writer, indent + 1);
+			writer.write("\"count\": ");
+			writer.write(count.toString());
+			writer.write(",\n");
+			SimpleJsonWriter.indent(writer, indent + 1);
+			writer.write("\"score\": ");
+			writer.write(String.format(SCORE_FORMAT, score));
+			writer.write('\n');
+			SimpleJsonWriter.indent(writer, indent);
+			writer.write('}');
+		}
+
+
 	}
 }

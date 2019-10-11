@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
  * <p>Auxiliary functions includes word counter and JSON writer
  *
  * @author Jason Liang
- * @version v1.1.0
+ * @version v2.0.0
  */
 public class InvertedIndex {
 	/**
@@ -112,6 +112,13 @@ public class InvertedIndex {
 		return true;
 	}
 
+	/**
+	 * Gives the source to Query through SearchBuilder
+	 *
+	 * @param word
+	 * @param exact
+	 * @return
+	 */
 	public Map<String, Long> getWordFileCount(String word, boolean exact) {
 		if (exact)
 			return getExactWordFileCount(word);

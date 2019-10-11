@@ -117,21 +117,11 @@ public final class SimpleJsonWriter {
 	 * @param level   the initial intent level
 	 * @param <V>     the element type
 	 * @throws IOException if file is not found
+	 * @see #asVariable(Object, Writer, int)
 	 */
 	private static <V> void asArrayVariable(V element, Writer writer, int level) throws IOException {
-		if (element instanceof Map<?, ?>) {
-			indent(writer, level + 1);
-			asDependentObject((Map<?, ?>) element, writer, level + 1);
-		} else if (element instanceof Collection<?>) {
-			indent(writer, level + 1);
-			asDependentArray((Collection<?>) element, writer, level + 1);
-		} else if (element instanceof String) {
-			quote(element.toString(), writer, level + 1);
-		} else if (element instanceof JSONObject) {
-			writer.write(((JSONObject) element).toJSONObjectString(level + 1));
-		} else {
-			indent(element.toString(), writer, level + 1);
-		}
+		indent(writer, level + 1);
+		asVariable(element, writer, level);
 	}
 
 	/**
@@ -232,22 +222,33 @@ public final class SimpleJsonWriter {
 	 * @param writer  the writer to use
 	 * @param level   the initial indent level
 	 * @throws IOException if file is not found
+	 * @see #asVariable(Object, Writer, int)
 	 */
 	private static void asObjectVariable(Map.Entry<?, ?> element, Writer writer, int level) throws IOException {
 		quote(element.getKey().toString(), writer, level + 1);
 		writer.write(": ");
-		var type = element.getValue();
-		//Why is there no switch case for this??
-		if (type instanceof Collection<?>) {
-			asDependentArray((Collection<?>) type, writer, level + 1);
-		} else if (type instanceof Map<?, ?>) {
-			asDependentObject((Map<?, ?>) type, writer, level + 1);
-		} else if (type instanceof String) {
-			quote(type.toString(), writer);
+		asVariable(element.getValue(), writer, level);
+	}
+
+	/**
+	 * Helper method for writing an element's value
+	 *
+	 * @param element the element to write
+	 * @param writer  the writer to use
+	 * @param level   the initial indent level
+	 * @throws IOException if file is not found
+	 */
+	private static <V> void asVariable(V element, Writer writer, int level) throws IOException {
+		if (element instanceof Map<?, ?>) {
+			asDependentObject((Map<?, ?>) element, writer, level + 1);
+		} else if (element instanceof Collection<?>) {
+			asDependentArray((Collection<?>) element, writer, level + 1);
+		} else if (element instanceof String) {
+			quote(element.toString(), writer);
 		} else if (element instanceof JSONObject) {
-			writer.write(((JSONObject) element).toJSONObjectString(level + 1));
+			((JSONObject) element).toJSON(writer, level);
 		} else {
-			writer.write(type.toString());
+			writer.write(element.toString());
 		}
 	}
 
@@ -258,7 +259,7 @@ public final class SimpleJsonWriter {
 	 * @param times  the number of times to write a tab symbol
 	 * @throws IOException if file is not found
 	 */
-	private static void indent(Writer writer, int times) throws IOException {
+	public static void indent(Writer writer, int times) throws IOException {
 		// THIS CODE IS PROVIDED FOR YOU; DO NOT MODIFY
 		for (int i = 0; i < times; i++) {
 			writer.write('\t');
@@ -274,7 +275,7 @@ public final class SimpleJsonWriter {
 	 * @throws IOException if file is not found
 	 * @see #indent(Writer, int)
 	 */
-	private static void indent(String element, Writer writer, int times) throws IOException {
+	public static void indent(String element, Writer writer, int times) throws IOException {
 		// THIS CODE IS PROVIDED FOR YOU; DO NOT MODIFY
 		indent(writer, times);
 		writer.write(element);
@@ -287,7 +288,7 @@ public final class SimpleJsonWriter {
 	 * @param writer  the writer to use
 	 * @throws IOException if file is not found
 	 */
-	private static void quote(String element, Writer writer) throws IOException {
+	public static void quote(String element, Writer writer) throws IOException {
 		// THIS CODE IS PROVIDED FOR YOU; DO NOT MODIFY
 		writer.write('"');
 		writer.write(element);
@@ -305,7 +306,7 @@ public final class SimpleJsonWriter {
 	 * @see #indent(Writer, int)
 	 * @see #quote(String, Writer)
 	 */
-	private static void quote(String element, Writer writer, int times) throws IOException {
+	public static void quote(String element, Writer writer, int times) throws IOException {
 		// THIS CODE IS PROVIDED FOR YOU; DO NOT MODIFY
 		indent(writer, times);
 		quote(element, writer);
