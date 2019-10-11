@@ -118,30 +118,31 @@ public class InvertedIndex {
 		return getPartialWordFileCount(word);
 	}
 
-	public Map<String, Long> getExactWordFileCount(String word) {
+	private Map<String, Long> getExactWordFileCount(String word) {
 		var map = indexMap.get(word);
 		if (map != null) {
 			return map.entrySet()
 					.stream()
-//					.peek(System.out::println)
 					.collect(
-							Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> Long.valueOf(e.getValue().size()))
+							Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> (long) e.getValue().size())
 					);
 		}
 		return Collections.emptyMap();
 	}
 
-	public Map<String, Long> getPartialWordFileCount(String word) {
+	//TODO Fix this bad boy
+	private Map<String, Long> getPartialWordFileCount(String word) {
 		if (!indexMap.isEmpty()) {
 			return indexMap.entrySet().stream()
 					.filter(e -> e.getKey().startsWith(word))
-//					.peek(System.out::println)
 					.map(Map.Entry::getValue)
 					.flatMap(e -> e.entrySet().stream())
-//				    .peek(System.out::println)
 					.collect(
-							Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> Long.valueOf(e.getValue().size()))
+							Collectors.toUnmodifiableMap(
+									Map.Entry::getKey, e -> (long) e.getValue().size(), (a, b) -> a + b //resolve duplicates with merge
+							)
 					);
+
 		}
 		return Collections.emptyMap();
 	}
