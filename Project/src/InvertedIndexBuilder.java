@@ -120,7 +120,7 @@ public class InvertedIndexBuilder {
 	 * @param output The output path to store the JSON object
 	 * @throws IOException if the output file could not be created or written
 	 */
-	public void indexToJSON(Path output) throws IOException {
+	public void indexToJSON(Path output) throws IOException { // TODO Remove
 		index.indexToJSON(output);
 	}
 
@@ -130,7 +130,7 @@ public class InvertedIndexBuilder {
 	 * @param output The output path to store the JSON object
 	 * @throws IOException if the output file could not be created or written
 	 */
-	public void countToJSON(Path output) throws IOException {
+	public void countToJSON(Path output) throws IOException { // TODO Remove
 		index.countToJSON(output);
 	}
 }

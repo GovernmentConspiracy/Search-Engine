@@ -34,6 +34,19 @@ public class InvertedIndex {
 	 */
 	private final Map<String, Long> countMap;
 
+	/*
+	 * TODO indexMap and countMap must always have the same information in it
+	 * 
+	 * Every time you add anything to indexMap, update countMap
+	 * 
+	 * 1) If this is a non-duplicate add, increase the count by 1
+	 * 2) Use the position as a proxy for the word count
+	 * 
+	 * add(hello, hello.txt, 5) <-- know there is at least 5 words in hello.txt
+	 * add(hello, hello.txt, 2) <-- ignore, know we have at least 5 words
+	 * add(world, hello.txt, 12) <--- update the count to 12
+	 */
+	
 	/**
 	 * Constructs a new empty inverted index and can pass in acceptable file extensions
 	 */
@@ -42,6 +55,7 @@ public class InvertedIndex {
 		this.countMap = new TreeMap<>();
 	}
 
+	// TODO Move this to InvertedIndexBuilder
 	/**
 	 * Generates word - path - location pairs onto a nested map structure,
 	 * storing where a stemmed word was found in a file and position
@@ -62,6 +76,7 @@ public class InvertedIndex {
 					indexPut(stemmer.stem(word).toString(), input.toString(), ++i);
 				}
 			}
+			// TODO Remove (see other comments)
 			if (i > 0)
 				countMap.put(input.toString(), i); //writes into count map
 		}
@@ -76,7 +91,7 @@ public class InvertedIndex {
 	 * @param location   An long representing the location of where {@code word} was found in {@code pathString}
 	 * @see #index(Path)
 	 */
-	private void indexPut(String word, String pathString, long location) {
+	private void indexPut(String word, String pathString, long location) { // TODO public
 		indexMap.putIfAbsent(word, new TreeMap<>());
 		indexMap.get(word).putIfAbsent(pathString, new TreeSet<>());
 		indexMap.get(word).get(pathString).add(location);
@@ -109,6 +124,8 @@ public class InvertedIndex {
 		}
 		return true;
 	}
+	
+	// TODO Remove
 //
 //	/**
 //	 * DEPRECIATED since v1.1.0
@@ -141,6 +158,7 @@ public class InvertedIndex {
 	 * @see #index(Path)
 	 */
 	public void countToJSON(Path output) throws IOException {
+		// TODO SimpleJsonWriter.asObject(map, output);
 		mapToJSON(countMap, output);
 	}
 
@@ -168,11 +186,27 @@ public class InvertedIndex {
 	 * @param output The output path of the JSON file
 	 * @throws IOException if the output file could not be created or written
 	 */
-	private void mapToJSON(Map<String, ?> map, Path output) throws IOException {
+	private void mapToJSON(Map<String, ?> map, Path output) throws IOException { // TODO Remove?
 		SimpleJsonWriter.asObject(map, output);
 //        } catch (IOException e) {
 //            System.err.printf("Could not write into Path \"%s\"\n", output.toString());
 //            System.err.println(e.getMessage());
 //        }
 	}
+	
+	/*
+	 * TODO Need more methods here
+	 * 
+	 * public boolean contains(String word)
+	 * public boolean contains(String words, String location)
+	 * public boolean contains(String words, String location, int position)
+	 * 
+	 * public Set<String> getWords() --> return an unmodfiable set of indexMap.keySet()
+	 * public Set<String> getLocations(String word)
+	 * public Set<String> getPositions(String word, String location)
+	 * 
+	 * public Map<String, Integer> getCounts() {
+	 * 	return Collections.unmodifiableMap(countMap);
+	 * }
+	 */
 }
