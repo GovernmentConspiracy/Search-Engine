@@ -139,10 +139,9 @@ public class InvertedIndex {
 					.flatMap(e -> e.entrySet().stream())
 					.collect(
 							Collectors.toUnmodifiableMap(
-									Map.Entry::getKey, e -> (long) e.getValue().size(), (a, b) -> a + b //resolve duplicates with merge
+									Map.Entry::getKey, e -> (long) e.getValue().size(), Long::sum //resolve duplicates with merge
 							)
 					);
-
 		}
 		return Collections.emptyMap();
 	}
