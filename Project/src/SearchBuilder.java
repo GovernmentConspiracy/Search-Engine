@@ -1,14 +1,13 @@
 import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
+import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 //TODO refactor whole builder class to accept Query
 
 /**
@@ -106,25 +105,43 @@ public class SearchBuilder {
 		index.countToJSON(output);
 	}
 
-	public static void addQueryPath(Path input, Query query, InvertedIndex index, boolean partial) throws IOException {
+	/**
+	 * A behemoth of a function
+	 *
+	 * @param input
+	 * @param query
+	 * @param index
+	 * @param exact
+	 * @throws IOException
+	 */
+	public static void addQueryPath(Path input, Query query, InvertedIndex index, boolean exact) throws IOException {
+		if (Files.isDirectory(input))
+			throw new IOException("Wrong file type");
 		Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
 		try (
 				BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
 		) {
 			String line;
-			Map<String, Long> counts = index.getCounts();
-			Map<String, Long> fileCount;
+			final Map<String, Long> counts = index.getCounts(); //read only
 			while ((line = reader.readLine()) != null) {
+				Set<String> usedPhrases = new TreeSet<>();
+				Map<String, Long> fileCount = new TreeMap<>();
 				for (String word : TextParser.parse(line)) {
 					String phrase = stemmer.stem(word).toString();
-					if (partial) {
-						fileCount = index.getPartialWordFileCount(phrase);
-					} else {
-						fileCount = index.getExactWordFileCount(phrase);
+
+					if (usedPhrases.add(phrase)) {
+						index.getWordFileCount(phrase, exact)
+								.forEach((key, value) ->
+										fileCount.put(key, fileCount.getOrDefault(key, (long) 0) + value));
 					}
-					fileCount.entrySet()
-							.forEach(e -> query.addQuery(
-									phrase, e.getKey(), e.getValue(), counts.get(e.getKey())));
+				}
+				String lineFinal = String.join(" ", usedPhrases);
+				if (!fileCount.isEmpty()) {
+					fileCount.forEach((key, value) -> query.addQuery(
+							lineFinal, key, value, counts.get(key)));
+				} else {
+					if (lineFinal.length() > 0)
+						query.addEmptyQuery(lineFinal);
 				}
 			}
 		}
@@ -137,7 +154,7 @@ public class SearchBuilder {
 //		}
 //	}
 
-	public void queryToJSON(Path output, Query query) throws IOException {
+	public static void queryToJSON(Path output, Query query) throws IOException {
 		query.queryToJSON(output);
 	}
 }

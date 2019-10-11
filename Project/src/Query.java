@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.io.Writer;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -18,7 +19,11 @@ public class Query {
 
 	public void addQuery(String word, String fileName, Long partial, Long total) {
 		queryEntries.putIfAbsent(word, new TreeSet<>());
-		queryEntries.get(word).add(new SearchResult(fileName, partial, (double) total / partial));
+		queryEntries.get(word).add(new SearchResult(fileName, partial, (double) partial / total));
+	}
+
+	public void addEmptyQuery(String word) {
+		queryEntries.putIfAbsent(word, Collections.emptySet());
 	}
 
 	public void queryToJSON(Path output) throws IOException {
@@ -28,14 +33,14 @@ public class Query {
 	/**
 	 * Search results
 	 */
-	public static class SearchResult implements Comparable<SearchResult> {
+	public static class SearchResult implements Comparable<SearchResult>, JSONObject {
 		//		private String search;
 		private String where;
 		private Long count;
 		private Double score;
 
 		private static final String FORMATTED =
-				"{\n\twhere: \"%s\"\n\tcount: %d\n\tscore: %f\n}";
+				"{\n\twhere: \"%s\",\n\tcount: %d,\n\tscore: %f\n}";
 
 		public SearchResult(String where, Long count, Double score) {
 			this.where = where;
@@ -69,10 +74,10 @@ public class Query {
 		@Override
 		public int compareTo(SearchResult other) {
 			int temp;
-			if ((temp = Double.compare(this.score, other.score)) == 0) {
-				if ((temp = Long.compare(this.count, other.count)) == 0) {
-					return this.where.compareTo(other.where);
-//					if ((temp = this.where.compareTo(other.where)) == 0) {
+			if ((temp = -Double.compare(this.score, other.score)) == 0) {
+				if ((temp = -Long.compare(this.count, other.count)) == 0) {
+					return this.where.compareToIgnoreCase(other.where);
+//					if ((temp = this.where.compareToIgnoreCase(other.where)) == 0) {
 //						return 0;
 //					}
 				}
@@ -83,6 +88,32 @@ public class Query {
 		@Override
 		public String toString() {
 			return String.format(FORMATTED, where, count, score);
+		}
+
+		public String toJSONObjectString(int indent) {
+			StringBuilder str = new StringBuilder();
+			for (int i = 1; i <= indent; i++) {
+				str.append('\t');
+			}
+			str.append("{\n");
+			for (int i = 1; i <= indent + 1; i++) {
+				str.append('\t');
+			}
+			str.append("\"where\": ").append('\"').append(where).append("\",\n");
+
+			for (int i = 1; i <= indent + 1; i++) {
+				str.append('\t');
+			}
+			str.append("\"count\": ").append(count).append(",\n");
+			for (int i = 1; i <= indent + 1; i++) {
+				str.append('\t');
+			}
+			str.append("\"score\": ").append(String.format("%.8f", score)).append('\n');
+			for (int i = 1; i <= indent; i++) {
+				str.append('\t');
+			}
+			str.append('}');
+			return str.toString();
 		}
 	}
 }

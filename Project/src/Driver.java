@@ -28,6 +28,12 @@ public class Driver {
 	private static final Path COUNTS_DEFAULT_PATH = Path.of("counts.json");
 
 	/**
+	 * The default results path if no path is provided through command line.
+	 */
+	private static final Path RESULTS_DEFAULT_PATH = Path.of("results.json");
+
+
+	/**
 	 * A string representing the path flag.
 	 * This flag must exist in args in order to run.
 	 */
@@ -42,6 +48,21 @@ public class Driver {
 	 * A string representing the counts flag
 	 */
 	private static final String COUNTS_FLAG = "-counts";
+
+	/**
+	 * A string representing the query flag
+	 */
+	private static final String QUERY_FLAG = "-query";
+
+	/**
+	 * A string representing the exact flag
+	 */
+	private static final String EXACT_FLAG = "-exact";
+
+	/**
+	 * A string representing the results flag
+	 */
+	private static final String RESULTS_FLAG = "-results";
 
 	/**
 	 * Initializes the classes necessary based on the provided command-line
@@ -59,12 +80,13 @@ public class Driver {
 		InvertedIndex index = new InvertedIndex();
 		Query query = new Query();
 
-		Path input;
+		Path indexPath, queryPath;
 
-		if ((input = command.getPath(PATH_FLAG)) != null) {
+		if ((indexPath = command.getPath(PATH_FLAG)) != null) {
 			try {
-				SearchBuilder.indexTraverse(input, index);
+				SearchBuilder.indexTraverse(indexPath, index);
 			} catch (IOException e) {
+				//TODO Logger
 				System.err.println("Input path for index could not be read. Check if other threads are accessing it.");
 				System.err.println(e.getMessage());
 			}
@@ -78,6 +100,7 @@ public class Driver {
 			try {
 				SearchBuilder.indexToJSON(indexOutput, index);
 			} catch (IOException e) {
+				//TODO Logger
 				System.err.println("Output path for index could not be written.");
 				System.err.printf("Check if path (%s) is writable (i.e is not a directory)\n", indexOutput);
 				System.err.println(e.getMessage());
@@ -91,11 +114,39 @@ public class Driver {
 			try {
 				SearchBuilder.countToJSON(countsOutput, index);
 			} catch (IOException e) {
+				//TODO Logger
 				System.err.println("Output path for counts could not be written.");
 				System.err.printf("Check if path (%s) is writable (i.e is not a directory)\n", countsOutput);
 				System.err.println(e.getMessage());
 			}
 		}
+
+		if ((queryPath = command.getPath(QUERY_FLAG)) != null) {
+			try {
+				SearchBuilder.addQueryPath(queryPath, query, index, command.hasFlag(EXACT_FLAG));
+			} catch (IOException e) {
+				//TODO Logger
+				System.err.println("Input path for index could not be read. Check if this is the correct path type.");
+				System.err.println(e.getMessage());
+			}
+		} else {
+			System.out.printf("Program arguments %s is required\n", PATH_FLAG);
+			System.out.println("Ex:\n -path \"project-tests/huckleberry.txt\"\n");
+		}
+
+		if (command.hasFlag(RESULTS_FLAG)) {
+			Path resultsOutput = command.getPath(RESULTS_FLAG, RESULTS_DEFAULT_PATH);
+			try {
+				SearchBuilder.queryToJSON(resultsOutput, query);
+			} catch (IOException e) {
+				//TODO Logger
+				System.err.println("Output path for counts could not be written.");
+				System.err.printf("Check if path (%s) is writable (i.e is not a directory)\n", resultsOutput);
+				System.err.println(e.getMessage());
+			}
+		}
+
+
 		/*-----------------End-----------------*/
 
 		// calculate time elapsed and output

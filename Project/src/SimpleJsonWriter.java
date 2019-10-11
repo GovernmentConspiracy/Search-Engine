@@ -127,6 +127,8 @@ public final class SimpleJsonWriter {
 			asDependentArray((Collection<?>) element, writer, level + 1);
 		} else if (element instanceof String) {
 			quote(element.toString(), writer, level + 1);
+		} else if (element instanceof JSONObject) {
+			writer.write(((JSONObject) element).toJSONObjectString(level + 1));
 		} else {
 			indent(element.toString(), writer, level + 1);
 		}
@@ -242,6 +244,8 @@ public final class SimpleJsonWriter {
 			asDependentObject((Map<?, ?>) type, writer, level + 1);
 		} else if (type instanceof String) {
 			quote(type.toString(), writer);
+		} else if (element instanceof JSONObject) {
+			writer.write(((JSONObject) element).toJSONObjectString(level + 1));
 		} else {
 			writer.write(type.toString());
 		}

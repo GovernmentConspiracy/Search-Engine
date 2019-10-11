@@ -112,22 +112,38 @@ public class InvertedIndex {
 		return true;
 	}
 
+	public Map<String, Long> getWordFileCount(String word, boolean exact) {
+		if (exact)
+			return getExactWordFileCount(word);
+		return getPartialWordFileCount(word);
+	}
+
 	public Map<String, Long> getExactWordFileCount(String word) {
-		return indexMap.get(word).entrySet()
-				.stream()
-				.collect(
-						Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> Long.valueOf(e.getValue().size()))
-				);
+		var map = indexMap.get(word);
+		if (map != null) {
+			return map.entrySet()
+					.stream()
+//					.peek(System.out::println)
+					.collect(
+							Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> Long.valueOf(e.getValue().size()))
+					);
+		}
+		return Collections.emptyMap();
 	}
 
 	public Map<String, Long> getPartialWordFileCount(String word) {
-		return indexMap.entrySet().stream()
-				.filter(e -> e.getKey().startsWith(word))
-				.map(Map.Entry::getValue)
-				.flatMap(e -> e.entrySet().stream())
-				.collect(
-						Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> Long.valueOf(e.getValue().size()))
-				);
+		if (!indexMap.isEmpty()) {
+			return indexMap.entrySet().stream()
+					.filter(e -> e.getKey().startsWith(word))
+//					.peek(System.out::println)
+					.map(Map.Entry::getValue)
+					.flatMap(e -> e.entrySet().stream())
+//				    .peek(System.out::println)
+					.collect(
+							Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> Long.valueOf(e.getValue().size()))
+					);
+		}
+		return Collections.emptyMap();
 	}
 
 	public Map<String, Long> getCounts() {
