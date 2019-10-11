@@ -56,12 +56,14 @@ public class Driver {
 
 		/*-----------------Start-----------------*/
 		ArgumentParser command = new ArgumentParser(args);
-		InvertedIndexBuilder index = new InvertedIndexBuilder();
+		InvertedIndex index = new InvertedIndex();
+		Query query = new Query();
+
 		Path input;
 
 		if ((input = command.getPath(PATH_FLAG)) != null) {
 			try {
-				index.transverse(input);
+				SearchBuilder.indexTraverse(input, index);
 			} catch (IOException e) {
 				System.err.println("Input path for index could not be read. Check if other threads are accessing it.");
 				System.err.println(e.getMessage());
@@ -74,7 +76,7 @@ public class Driver {
 		if (command.hasFlag(INDEX_FLAG)) {
 			Path indexOutput = command.getPath(INDEX_FLAG, INDEX_DEFAULT_PATH);
 			try {
-				index.indexToJSON(indexOutput);
+				SearchBuilder.indexToJSON(indexOutput, index);
 			} catch (IOException e) {
 				System.err.println("Output path for index could not be written.");
 				System.err.printf("Check if path (%s) is writable (i.e is not a directory)\n", indexOutput);
@@ -87,7 +89,7 @@ public class Driver {
 		if (command.hasFlag(COUNTS_FLAG)) {
 			Path countsOutput = command.getPath(COUNTS_FLAG, COUNTS_DEFAULT_PATH);
 			try {
-				index.countToJSON(countsOutput);
+				SearchBuilder.countToJSON(countsOutput, index);
 			} catch (IOException e) {
 				System.err.println("Output path for counts could not be written.");
 				System.err.printf("Check if path (%s) is writable (i.e is not a directory)\n", countsOutput);

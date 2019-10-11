@@ -112,12 +112,26 @@ public class InvertedIndex {
 		return true;
 	}
 
-	public Map<String, Long> getFileCount(String word) {
+	public Map<String, Long> getExactWordFileCount(String word) {
 		return indexMap.get(word).entrySet()
 				.stream()
 				.collect(
 						Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> Long.valueOf(e.getValue().size()))
 				);
+	}
+
+	public Map<String, Long> getPartialWordFileCount(String word) {
+		return indexMap.entrySet().stream()
+				.filter(e -> e.getKey().startsWith(word))
+				.map(Map.Entry::getValue)
+				.flatMap(e -> e.entrySet().stream())
+				.collect(
+						Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> Long.valueOf(e.getValue().size()))
+				);
+	}
+
+	public Map<String, Long> getCounts() {
+		return Collections.unmodifiableMap(countMap);
 	}
 //
 //	/**
@@ -187,64 +201,5 @@ public class InvertedIndex {
 //        }
 	}
 
-	/**
-	 * Search results
-	 */
-	public class SearchResult implements Comparable<SearchResult> {
-		//		private String search;
-		private String where;
-		private Long count;
-		private Double score;
 
-		private static final String FORMATTED =
-				"{\n\twhere: \"%s\"\n\tcount: %d\n\tscore: %f\n}";
-
-		public SearchResult(String where, Long count, Double score) {
-			this.where = where;
-			this.count = count;
-			this.score = score;
-		}
-
-//		public SearchResult(String search, String where, Long count, Double score) {
-//			this.search = search;
-//			this.where = where;
-//			this.count = count;
-//			this.score = score;
-//		}
-
-//		public String getSearch() {
-//			return search;
-//		}
-
-		public String getWhere() {
-			return where;
-		}
-
-		public Long getCount() {
-			return count;
-		}
-
-		public Double getScore() {
-			return score;
-		}
-
-		@Override
-		public int compareTo(SearchResult other) {
-			int temp;
-			if ((temp = Double.compare(this.score, other.score)) == 0) {
-				if ((temp = Long.compare(this.count, other.count)) == 0) {
-					return this.where.compareTo(other.where);
-//					if ((temp = this.where.compareTo(other.where)) == 0) {
-//						return 0;
-//					}
-				}
-			}
-			return temp;
-		}
-
-		@Override
-		public String toString() {
-			return String.format(FORMATTED, where, count, score);
-		}
-	}
 }

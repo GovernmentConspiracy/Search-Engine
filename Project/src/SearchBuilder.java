@@ -1,7 +1,14 @@
+import opennlp.tools.stemmer.Stemmer;
+import opennlp.tools.stemmer.snowball.SnowballStemmer;
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 //TODO refactor whole builder class to accept Query
 
 /**
@@ -14,8 +21,9 @@ import java.util.List;
  */
 public class SearchBuilder {
 	/**
-	 * An index to store words and the location (both file location and position in file) of where those words were found.
+	 * Default SnowballStemmer algorithm from OpenNLP.
 	 */
+	private static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
 
 	/**
 	 * Do not instantiate.
@@ -24,26 +32,28 @@ public class SearchBuilder {
 	}
 
 	/**
-	 * Adds a non-directory file into index
+	 * Adds a non-directory file input into index
 	 *
 	 * @param input the path to be added into InvertedIndex
-	 * @param index
+	 * @param index the index to be filled
 	 * @return the reference of this object
 	 * @throws IOException if the files could not be inserted
 	 */
-	public static void addFile(Path input, InvertedIndex index) throws IOException {
+	public static void addIndexPath(Path input, InvertedIndex index) throws IOException {
 		index.index(input);
 	}
 
 	/**
+	 * Adds all files and sub-files of directory input into index
+	 *
 	 * @param input the path to be added into InvertedIndex
-	 * @return the reference of this object
+	 * @param index the index to be filled
 	 * @throws IOException if the files could not be inserted
 	 */
-	public static void transverse(Path input, InvertedIndex index) throws IOException {
+	public static void indexTraverse(Path input, InvertedIndex index) throws IOException {
 		List<Path> paths = getFiles(input);
 		for (Path in : paths) {
-			addFile(in, index);
+			addIndexPath(in, index);
 		}
 	}
 
@@ -78,7 +88,7 @@ public class SearchBuilder {
 	 * Generates a JSON text file of the inverted index, stored at Path output
 	 *
 	 * @param output The output path to store the JSON object
-	 * @param index
+	 * @param index the index to be filled
 	 * @throws IOException if the output file could not be created or written
 	 */
 	public static void indexToJSON(Path output, InvertedIndex index) throws IOException {
@@ -89,9 +99,45 @@ public class SearchBuilder {
 	 * Generates a JSON text file of the count of words, stored at Path output
 	 *
 	 * @param output The output path to store the JSON object
+	 * @param index the index to be filled
 	 * @throws IOException if the output file could not be created or written
 	 */
 	public static void countToJSON(Path output, InvertedIndex index) throws IOException {
 		index.countToJSON(output);
+	}
+
+	public static void addQueryPath(Path input, Query query, InvertedIndex index, boolean partial) throws IOException {
+		Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
+		try (
+				BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
+		) {
+			String line;
+			Map<String, Long> counts = index.getCounts();
+			Map<String, Long> fileCount;
+			while ((line = reader.readLine()) != null) {
+				for (String word : TextParser.parse(line)) {
+					String phrase = stemmer.stem(word).toString();
+					if (partial) {
+						fileCount = index.getPartialWordFileCount(phrase);
+					} else {
+						fileCount = index.getExactWordFileCount(phrase);
+					}
+					fileCount.entrySet()
+							.forEach(e -> query.addQuery(
+									phrase, e.getKey(), e.getValue(), counts.get(e.getKey())));
+				}
+			}
+		}
+	}
+
+//	public static void queryTraverse(Path input, Query query, InvertedIndex index) throws IOException {
+//		List<Path> paths = getFiles(input);
+//		for (Path in : paths) {
+//			addQueryPath(in, query, index);
+//		}
+//	}
+
+	public void queryToJSON(Path output, Query query) throws IOException {
+		query.queryToJSON(output);
 	}
 }
