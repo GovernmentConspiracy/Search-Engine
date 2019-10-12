@@ -106,7 +106,7 @@ public final class TextFileFinder {
 	 * @return {@code true} if the path ends with the correct extension
 	 * @see #ACCEPTABLE_FILE_EXTENSIONS
 	 */
-	private static boolean isAcceptableExtension(Path path) { // TODO public
+	public static boolean isAcceptableExtension(Path path) {
 		if (Files.exists(path) && !Files.isDirectory(path)) {
 			String pathExtension = getExtension(path.toString()).toLowerCase();
 			for (String ext : ACCEPTABLE_FILE_EXTENSIONS) {
@@ -127,7 +127,7 @@ public final class TextFileFinder {
 	 * an empty string if there is no valid EXTENSION_SEPARATOR,
 	 * or {@code null} if the parameter is null
 	 */
-	private static String getExtension(String pathName) { // TODO public
+	public static String getExtension(String pathName) {
 		if (pathName != null) {
 			int index = indexOfExtension(pathName);
 			if (index != -1) {

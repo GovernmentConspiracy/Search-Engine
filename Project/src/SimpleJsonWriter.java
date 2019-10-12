@@ -70,7 +70,6 @@ public final class SimpleJsonWriter {
 			asArray(elements, writer, 0);
 			return writer.toString();
 		} catch (IOException e) {
-//            System.out.println("Could not generate a String");
 			return null;
 		}
 	}

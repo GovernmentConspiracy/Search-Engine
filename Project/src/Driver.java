@@ -3,10 +3,6 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 
-/*
- * TODO Remove NEW* TODO comments after asking
- */
-
 /**
  * Class responsible for running this project based on the provided command-line
  * arguments. See the README for details.
