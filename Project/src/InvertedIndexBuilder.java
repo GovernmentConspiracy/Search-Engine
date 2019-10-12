@@ -113,24 +113,4 @@ public class InvertedIndexBuilder {
 	public InvertedIndex getIndex() {
 		return index;
 	}
-
-	/**
-	 * Generates a JSON text file of the inverted index, stored at Path output
-	 *
-	 * @param output The output path to store the JSON object
-	 * @throws IOException if the output file could not be created or written
-	 */
-	public void indexToJSON(Path output) throws IOException { // TODO Remove
-		index.indexToJSON(output);
-	}
-
-	/**
-	 * Generates a JSON text file of the count of words, stored at Path output
-	 *
-	 * @param output The output path to store the JSON object
-	 * @throws IOException if the output file could not be created or written
-	 */
-	public void countToJSON(Path output) throws IOException { // TODO Remove
-		index.countToJSON(output);
-	}
 }

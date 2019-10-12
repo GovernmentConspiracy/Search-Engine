@@ -99,24 +99,6 @@ public final class TextFileFinder {
 		return find(start).collect(Collectors.toList());
 	}
 
-	// TODO Remove
-//	/**
-//	 * Depreciated: does not work for files named like so: "falsefileTeXt"
-//	 *
-//	 * @param path The input path
-//	 * @return {@code true} if the file ends with the accepted file extension
-//	 */
-//	private static boolean isAcceptableExtension(Path path) {
-//		if (Files.exists(path) && !Files.isDirectory(path)) {
-//			String pathName = path.toString().toLowerCase();
-//			for (String ext : ACCEPTABLE_FILE_EXTENSIONS) {
-//				if (pathName.endsWith(ext)) //All methods below may be useless
-//					return true;
-//			}
-//		}
-//		return false;
-//	}
-
 	/**
 	 * Tests if {@code path} ends with one of the correct file extensions in ACCEPTABLE_FILE_EXTENSIONS.
 	 *

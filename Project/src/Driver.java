@@ -56,12 +56,13 @@ public class Driver {
 
 		/*-----------------Start-----------------*/
 		ArgumentParser command = new ArgumentParser(args);
-		InvertedIndexBuilder index = new InvertedIndexBuilder();
+		InvertedIndex index = new InvertedIndex();
+		InvertedIndexBuilder indexBuilder = new InvertedIndexBuilder(index);
 		Path input;
 
 		if ((input = command.getPath(PATH_FLAG)) != null) {
 			try {
-				index.transverse(input);
+				indexBuilder.transverse(input);
 			} catch (IOException e) {
 				System.err.println("Input path for index could not be read. Check if other threads are accessing it.");
 				System.err.println(e.getMessage());

@@ -1,5 +1,4 @@
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -78,10 +77,7 @@ public class ArgumentParser {
 	 * @see String#length()
 	 */
 	public static boolean isFlag(String arg) {
-		// TODO return arg != null && arg.length() > 1 && arg.charAt(0) == '-';
-		if (arg != null)
-			return arg.length() > 1 && arg.charAt(0) == '-';
-		return false;
+		return arg != null && arg.length() > 1 && arg.charAt(0) == '-';
 	}
 
 	/**
@@ -93,10 +89,8 @@ public class ArgumentParser {
 	 * @see String#startsWith(String)
 	 * @see String#length()
 	 */
-	public static boolean isValue(String arg) { // TODO Fix?
-		if (arg != null)
-			return arg.length() > 0 && arg.charAt(0) != '-';
-		return false;
+	public static boolean isValue(String arg) {
+		return arg != null && arg.length() > 0 && arg.charAt(0) != '-';
 	}
 
 	/**
@@ -169,7 +163,7 @@ public class ArgumentParser {
 		if (flag != null) {
 			String path = map.get(flag);
 			if (path != null)
-				return Paths.get(path); // TODO Path.of(...)
+				return Path.of(path);
 		}
 		return null;
 	}

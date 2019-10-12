@@ -91,7 +91,7 @@ public class InvertedIndex {
 	 * @param location   An long representing the location of where {@code word} was found in {@code pathString}
 	 * @see #index(Path)
 	 */
-	private void indexPut(String word, String pathString, long location) { // TODO public
+	public void indexPut(String word, String pathString, long location) {
 		indexMap.putIfAbsent(word, new TreeMap<>());
 		indexMap.get(word).putIfAbsent(pathString, new TreeSet<>());
 		indexMap.get(word).get(pathString).add(location);
@@ -105,7 +105,7 @@ public class InvertedIndex {
 	 * @see #index(Path)
 	 */
 	public void indexToJSON(Path output) throws IOException {
-		mapToJSON(indexMap, output);
+		SimpleJsonWriter.asObject(indexMap, output);
 	}
 
 	/**
@@ -124,31 +124,6 @@ public class InvertedIndex {
 		}
 		return true;
 	}
-	
-	// TODO Remove
-//
-//	/**
-//	 * DEPRECIATED since v1.1.0
-//	 * Populates {@code countMap} with text files of Path input
-//	 *
-//	 * @param input The file path which populates {@code countMap}
-//	 * @throws IOException if path input could not be read
-//	 * @see #countMap
-//	 */
-//	public void countIfEmpty(Path input) throws IOException { //Note: Efficient counter will iterate through the pre-made inverse index
-//		List<Path> paths = InvertedIndexBuilder.getFiles(input); //Nasty change
-//		for (Path in : paths) {
-//			try (
-//					BufferedReader reader = Files.newBufferedReader(in, StandardCharsets.UTF_8)
-//			) {
-//				long count = reader.lines()
-//						.flatMap(line -> Arrays.stream(TextParser.parse(line)))
-//						.count();
-//				if (count > 0)
-//					countMap.put(in.toString(), count);
-//			}
-//		}
-//	}
 
 	/**
 	 * Generates a JSON text file of the count of words, stored at Path output
@@ -158,8 +133,7 @@ public class InvertedIndex {
 	 * @see #index(Path)
 	 */
 	public void countToJSON(Path output) throws IOException {
-		// TODO SimpleJsonWriter.asObject(map, output);
-		mapToJSON(countMap, output);
+		SimpleJsonWriter.asObject(countMap, output);
 	}
 
 	/**
@@ -179,34 +153,36 @@ public class InvertedIndex {
 		return true;
 	}
 
-	/**
-	 * Helper method which creates a JSON file
-	 *
-	 * @param map    A map with key string to be converted as a generic object
-	 * @param output The output path of the JSON file
-	 * @throws IOException if the output file could not be created or written
-	 */
-	private void mapToJSON(Map<String, ?> map, Path output) throws IOException { // TODO Remove?
-		SimpleJsonWriter.asObject(map, output);
-//        } catch (IOException e) {
-//            System.err.printf("Could not write into Path \"%s\"\n", output.toString());
-//            System.err.println(e.getMessage());
-//        }
+	public boolean contains(String word) {
+		return indexMap.containsKey(word);
 	}
-	
-	/*
-	 * TODO Need more methods here
-	 * 
-	 * public boolean contains(String word)
-	 * public boolean contains(String words, String location)
-	 * public boolean contains(String words, String location, int position)
-	 * 
-	 * public Set<String> getWords() --> return an unmodfiable set of indexMap.keySet()
-	 * public Set<String> getLocations(String word)
-	 * public Set<String> getPositions(String word, String location)
-	 * 
-	 * public Map<String, Integer> getCounts() {
-	 * 	return Collections.unmodifiableMap(countMap);
-	 * }
-	 */
+
+	public boolean contains(String word, String location) {
+		return contains(word) && indexMap.get(word).containsKey(location);
+	}
+
+	public boolean contains(String word, String location, long position) {
+		return contains(word, location) && indexMap.get(word).get(location).contains(position);
+	}
+
+	public Set<String> getWords() {
+		return Collections.unmodifiableSet(indexMap.keySet());
+	}
+
+	public Set<String> getLocations(String word) {
+		if (contains(word))
+			return Collections.unmodifiableSet(indexMap.get(word).keySet());
+		return Collections.emptySet();
+	}
+
+	public Set<Long> getPositions(String word, String location) {
+		if (contains(word, location))
+			return Collections.unmodifiableSet(indexMap.get(word).get(location));
+		return Collections.emptySet();
+	}
+
+	public Map<String, Long> getCounts() {
+		return Collections.unmodifiableMap(countMap);
+	}
+
 }
