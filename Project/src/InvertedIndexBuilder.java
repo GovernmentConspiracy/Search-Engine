@@ -1,16 +1,27 @@
+import opennlp.tools.stemmer.Stemmer;
+import opennlp.tools.stemmer.snowball.SnowballStemmer;
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
-//TODO refactor whole builder class to accept Query
+
 /**
  * A builder class for inverted index, which is an index to store words and
  * the location (both file location and position in file) of where those words were found.
  *
  * @author Jason Liang
- * @version v1.1.0
+ * @version v1.2.0
  */
 public class InvertedIndexBuilder {
+	/**
+	 * Default SnowballStemmer algorithm from OpenNLP.
+	 */
+	private static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
+
 	/**
 	 * An index to store words and the location (both file location and position in file) of where those words were found.
 	 */
@@ -62,11 +73,25 @@ public class InvertedIndexBuilder {
 	 * @throws IOException if the files could not be inserted
 	 */
 	public InvertedIndexBuilder addFile(Path input) throws IOException {
-		index.index(input);
+		Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
+		try (
+				BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
+		) {
+			String line;
+			long i = 0;
+			// TODO String location = input.toString(); <--- and then use below so you do not recalculate this each loop
+			while ((line = reader.readLine()) != null) {
+				for (String word : TextParser.parse(line)) {
+					index.indexPut(stemmer.stem(word).toString(), input.toString(), ++i);
+				}
+			}
+		}
 		return this;
 	}
 
 	/**
+	 * TODO Add description of method here. 
+	 * 
 	 * @param input the path to be added into InvertedIndex
 	 * @return the reference of this object
 	 * @throws IOException if the files could not be inserted
@@ -74,7 +99,7 @@ public class InvertedIndexBuilder {
 	public InvertedIndexBuilder transverse(Path input) throws IOException {
 		List<Path> paths = getFiles(input);
 		for (Path in : paths) {
-			index.index(in);
+			addFile(in);
 		}
 		return this;
 	}
@@ -113,24 +138,18 @@ public class InvertedIndexBuilder {
 	public InvertedIndex getIndex() {
 		return index;
 	}
-
-	/**
-	 * Generates a JSON text file of the inverted index, stored at Path output
-	 *
-	 * @param output The output path to store the JSON object
-	 * @throws IOException if the output file could not be created or written
+	
+	/*
+	 * TODO For reasons I'll explain later, it helps for project 3 to have a static
+	 * and non-static version of your addFile(Path) method. My suggestion is this:
+	 * 
+	 * public static void addFile(Path input, InvertedIndex index) throws IOException {
+	 * 		the code you have in your addFile now, without returning a builder instance
+	 * }
+	 * 
+	 * public InvertedIndexBuilder addFile(Path input) throws IOException {
+	 * 		addFile(input, index);
+	 * 		return this;
+	 * }
 	 */
-	public void indexToJSON(Path output) throws IOException {
-		index.indexToJSON(output);
-	}
-
-	/**
-	 * Generates a JSON text file of the count of words, stored at Path output
-	 *
-	 * @param output The output path to store the JSON object
-	 * @throws IOException if the output file could not be created or written
-	 */
-	public void countToJSON(Path output) throws IOException {
-		index.countToJSON(output);
-	}
 }

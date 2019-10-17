@@ -3,6 +3,16 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 
+/*
+ * TODO I love all the design considerations in your code. Just be careful...
+ * starting to lean a little into the world of "overengineering" with some
+ * of the solutions. I don't want to discourage it too much; it is good to try
+ * and be creative making the best possible design within the scope of this class.
+ * Outside of this class, you'll have to find a balance between designing for
+ * what you need vs flexibility/generalization based on the pressures of the
+ * specific work environment.
+ */
+
 /**
  * Class responsible for running this project based on the provided command-line
  * arguments. See the README for details.
@@ -99,6 +109,7 @@ public class Driver {
 		System.out.printf("Elapsed: %f seconds%n", seconds);
 	}
 
+	// TODO Can delete this comment below.
 	/*
 	 * Generally, "driver" classes are responsible for setting up and calling other
 	 * classes, usually from a main() method that parses command-line parameters. If
