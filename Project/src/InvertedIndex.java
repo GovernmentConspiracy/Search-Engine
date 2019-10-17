@@ -11,6 +11,7 @@ import java.util.*;
  */
 public class InvertedIndex {
 
+	// TODO Do not upcast here---tree data structures will be useful for efficient search
 	/**
 	 * Nested data structure used to store location of where a word was found.
 	 * Outer map stores (key - value) as (word - file location)
@@ -182,4 +183,8 @@ public class InvertedIndex {
 		return Collections.unmodifiableMap(countMap);
 	}
 
+	/*
+	 * TODO Try to avoid 1-line if statements without curly braces.
+	 * (Look up the "goto fail" bug.)
+	 */
 }

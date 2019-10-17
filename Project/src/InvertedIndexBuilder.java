@@ -79,6 +79,7 @@ public class InvertedIndexBuilder {
 		) {
 			String line;
 			long i = 0;
+			// TODO String location = input.toString(); <--- and then use below so you do not recalculate this each loop
 			while ((line = reader.readLine()) != null) {
 				for (String word : TextParser.parse(line)) {
 					index.indexPut(stemmer.stem(word).toString(), input.toString(), ++i);
@@ -89,6 +90,8 @@ public class InvertedIndexBuilder {
 	}
 
 	/**
+	 * TODO Add description of method here. 
+	 * 
 	 * @param input the path to be added into InvertedIndex
 	 * @return the reference of this object
 	 * @throws IOException if the files could not be inserted
@@ -135,4 +138,18 @@ public class InvertedIndexBuilder {
 	public InvertedIndex getIndex() {
 		return index;
 	}
+	
+	/*
+	 * TODO For reasons I'll explain later, it helps for project 3 to have a static
+	 * and non-static version of your addFile(Path) method. My suggestion is this:
+	 * 
+	 * public static void addFile(Path input, InvertedIndex index) throws IOException {
+	 * 		the code you have in your addFile now, without returning a builder instance
+	 * }
+	 * 
+	 * public InvertedIndexBuilder addFile(Path input) throws IOException {
+	 * 		addFile(input, index);
+	 * 		return this;
+	 * }
+	 */
 }
