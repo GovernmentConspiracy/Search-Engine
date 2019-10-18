@@ -1,5 +1,4 @@
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -45,10 +44,11 @@ public class ArgumentParser { //
 		int index = 0;
 		while (index < args.length) {
 			if (isFlag(args[index])) {
-				if (checkValidValue(args, index + 1))
+				if (checkValidValue(args, index + 1)) {
 					map.put(args[index], args[++index]);
-				else
+				} else {
 					map.put(args[index], null);
+				}
 			}
 			index++;
 		}
@@ -62,10 +62,7 @@ public class ArgumentParser { //
 	 * @return {@code true} if the index is valid and args[index] is a value
 	 */
 	private boolean checkValidValue(String[] args, int index) {
-		if (index >= 0 && index < args.length) {
-			return isValue(args[index]);
-		}
-		return false;
+		return (index >= 0 && index < args.length && isValue(args[index]));
 	}
 
 	/**
@@ -78,9 +75,7 @@ public class ArgumentParser { //
 	 * @see String#length()
 	 */
 	public static boolean isFlag(String arg) {
-		if (arg != null)
-			return arg.length() > 1 && arg.charAt(0) == '-';
-		return false;
+		return arg != null && arg.length() > 1 && arg.charAt(0) == '-';
 	}
 
 	/**
@@ -93,9 +88,7 @@ public class ArgumentParser { //
 	 * @see String#length()
 	 */
 	public static boolean isValue(String arg) {
-		if (arg != null)
-			return arg.length() > 0 && arg.charAt(0) != '-';
-		return false;
+		return arg != null && arg.length() > 0 && arg.charAt(0) != '-';
 	}
 
 	/**
@@ -167,8 +160,9 @@ public class ArgumentParser { //
 	public Path getPath(String flag) {
 		if (flag != null) {
 			String path = map.get(flag);
-			if (path != null)
-				return Paths.get(path);
+			if (path != null) {
+				return Path.of(path);
+			}
 		}
 		return null;
 	}

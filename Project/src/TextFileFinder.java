@@ -97,23 +97,6 @@ public final class TextFileFinder {
 		return find(start).collect(Collectors.toList());
 	}
 
-//	/**
-//	 * Depreciated: does not work for files named like so: "falsefileTeXt"
-//	 *
-//	 * @param path The input path
-//	 * @return {@code true} if the file ends with the accepted file extension
-//	 */
-//	private static boolean isAcceptableExtension(Path path) {
-//		if (Files.exists(path) && !Files.isDirectory(path)) {
-//			String pathName = path.toString().toLowerCase();
-//			for (String ext : ACCEPTABLE_FILE_EXTENSIONS) {
-//				if (pathName.endsWith(ext)) //All methods below may be useless
-//					return true;
-//			}
-//		}
-//		return false;
-//	}
-
 	/**
 	 * Tests if {@code path} ends with one of the correct file extensions in ACCEPTABLE_FILE_EXTENSIONS.
 	 *
@@ -121,7 +104,7 @@ public final class TextFileFinder {
 	 * @return {@code true} if the path ends with the correct extension
 	 * @see #ACCEPTABLE_FILE_EXTENSIONS
 	 */
-	private static boolean isAcceptableExtension(Path path) {
+	public static boolean isAcceptableExtension(Path path) {
 		if (Files.exists(path) && !Files.isDirectory(path)) {
 			String pathExtension = getExtension(path.toString()).toLowerCase();
 			for (String ext : ACCEPTABLE_FILE_EXTENSIONS) {
@@ -142,7 +125,7 @@ public final class TextFileFinder {
 	 * an empty string if there is no valid EXTENSION_SEPARATOR,
 	 * or {@code null} if the parameter is null
 	 */
-	private static String getExtension(String pathName) {
+	public static String getExtension(String pathName) {
 		if (pathName != null) {
 			int index = indexOfExtension(pathName);
 			if (index != -1) {

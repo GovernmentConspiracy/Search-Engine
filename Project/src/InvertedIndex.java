@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
  * <p>Auxiliary functions includes word counter and JSON writer
  *
  * @author Jason Liang
- * @version v2.0.0
+ * @version v1.3.0
  */
 public class InvertedIndex {
 	/**
@@ -27,13 +27,13 @@ public class InvertedIndex {
 	 * Outer map stores (key - value) as (word - file location)
 	 * Inner map stores (key - value) as (file location - position in file)
 	 */
-	private final Map<String, Map<String, Set<Long>>> indexMap; //String1 = word, String2 = Path, Set1 = Location
+	private final TreeMap<String, TreeMap<String, TreeSet<Long>>> indexMap; //String1 = word, String2 = Path, Set1 = Location
 
 	/**
 	 * Nested data structure used to store word count of a file
 	 * Map stores (key - value) as (file location - number count)
 	 */
-	private final Map<String, Long> countMap;
+	private final TreeMap<String, Long> countMap;
 
 	/**
 	 * Constructs a new empty inverted index and can pass in acceptable file extensions
@@ -75,12 +75,16 @@ public class InvertedIndex {
 	 * @param word       A word made from a stemmed string. Used as the outer map key
 	 * @param pathString A string representing the path where {@code word} in string form. Used as inner map key
 	 * @param location   An long representing the location of where {@code word} was found in {@code pathString}
-	 * @see #index(Path)
 	 */
-	private void indexPut(String word, String pathString, long location) {
+	public void indexPut(String word, String pathString, long location) {
 		indexMap.putIfAbsent(word, new TreeMap<>());
 		indexMap.get(word).putIfAbsent(pathString, new TreeSet<>());
 		indexMap.get(word).get(pathString).add(location);
+
+		countMap.put(
+				pathString,
+				Math.max(location, countMap.getOrDefault(pathString, (long) 0))
+		);
 	}
 
 	/**
@@ -88,10 +92,9 @@ public class InvertedIndex {
 	 *
 	 * @param output The output path to store the JSON object
 	 * @throws IOException if the output file could not be created or written
-	 * @see #index(Path)
 	 */
 	public void indexToJSON(Path output) throws IOException {
-		mapToJSON(indexMap, output);
+		SimpleJsonWriter.asObject(indexMap, output);
 	}
 
 	/**
@@ -99,7 +102,6 @@ public class InvertedIndex {
 	 *
 	 * @param output The output path to store the JSON object
 	 * @return {@code true} if successful in creating a JSON file
-	 * @see #index(Path)
 	 * @see #indexToJSON(Path)
 	 */
 	public boolean indexToJSONSafe(Path output) {
@@ -162,10 +164,9 @@ public class InvertedIndex {
 	 *
 	 * @param output The output path to store the JSON object
 	 * @throws IOException if the output file could not be created or written
-	 * @see #index(Path)
 	 */
 	public void countToJSON(Path output) throws IOException {
-		mapToJSON(countMap, output);
+		SimpleJsonWriter.asObject(countMap, output);
 	}
 
 	/**
@@ -173,7 +174,6 @@ public class InvertedIndex {
 	 *
 	 * @param output The output path to store the JSON object
 	 * @return {@code true} if successful in creating a JSON file
-	 * @see #index(Path)
 	 * @see #indexToJSON(Path)
 	 */
 	public boolean countToJSONSafe(Path output) {
@@ -187,15 +187,84 @@ public class InvertedIndex {
 	}
 
 	/**
-	 * Helper method which creates a JSON file
+	 * Returns {@code true} if the indexMap contains the word key.
 	 *
-	 * @param map    A map with key string to be converted as a generic object
-	 * @param output The output path of the JSON file
-	 * @throws IOException if the output file could not be created or written
+	 * @param word the String key to be tested
+	 * @return {@code true} if the indexMap contains the specified word
 	 */
-	private void mapToJSON(Map<String, ?> map, Path output) throws IOException {
-		SimpleJsonWriter.asObject(map, output);
+	public boolean contains(String word) {
+		return indexMap.containsKey(word);
 	}
 
+	/**
+	 * Returns {@code true} if a map paired with key word in
+	 * indexMap contains the string location.
+	 *
+	 * @param word the String key to be tested on indexMap
+	 * @param location the String location to be tested an element in indexMap
+	 * @return {@code true} if the indexMap.get(word) contains the specified location
+	 */
+	public boolean contains(String word, String location) {
+		return contains(word) && indexMap.get(word).containsKey(location);
+	}
 
+	/**
+	 * Returns {@code true} if a set paired with key location in
+	 * a map paired with key word in
+	 * indexMap contains the position.
+	 *
+	 * @param word the String key to be tested on indexMap
+	 * @param location the String location to be tested an element in indexMap
+	 * @param position the long position to be tested on a an element of indexMap.get(location)
+	 * @return {@code true} if the indexMap.get(word).get(location) contains the specified position
+	 */
+	public boolean contains(String word, String location, long position) {
+		return contains(word, location) && indexMap.get(word).get(location).contains(position);
+	}
+
+	/**
+	 * Returns an unmodifiable key set of indexMap, or specifically
+	 * all words stored in Index.
+	 *
+	 * @return an unmodifiable set of indexMap.ketSet()
+	 */
+	public Set<String> getWords() {
+		return Collections.unmodifiableSet(indexMap.keySet());
+	}
+
+	/**
+	 * Returns an unmodifiable set of all file locations of a word.
+	 *
+	 * @param word the String key to retrieve an element of indexMap
+	 * @return an unmodifiable set of indexMap.get(word).ketSet()
+	 */
+	public Set<String> getLocations(String word) {
+		if (contains(word)) {
+			return Collections.unmodifiableSet(indexMap.get(word).keySet());
+		}
+		return Collections.emptySet();
+	}
+
+	/**
+	 * Returns an unmodifiable set of all positions of a word found in a file location
+	 *
+	 * @param word the String key to retrieve an element of indexMap
+	 * @param location the String location to retrieve an element of indexMap.get(word)
+	 * @return an unmodifiable set of indexMap.get(word).get(location)
+	 */
+	public Set<Long> getPositions(String word, String location) {
+		if (contains(word, location)) {
+			return Collections.unmodifiableSet(indexMap.get(word).get(location));
+		}
+		return Collections.emptySet();
+	}
+
+	/**
+	 * Returns an unmodifiable map of the countMap
+	 *
+	 * @return an unmodifiable map of the countMap
+	 */
+	public Map<String, Long> getCounts() {
+		return Collections.unmodifiableMap(countMap);
+	}
 }

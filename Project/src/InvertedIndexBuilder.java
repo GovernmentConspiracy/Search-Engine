@@ -1,4 +1,10 @@
+import opennlp.tools.stemmer.Stemmer;
+import opennlp.tools.stemmer.snowball.SnowballStemmer;
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
@@ -8,9 +14,14 @@ import java.util.List;
  * the location (both file location and position in file) of where those words were found.
  *
  * @author Jason Liang
- * @version v1.1.0
+ * @version v1.3.0
  */
 public class InvertedIndexBuilder {
+	/**
+	 * Default SnowballStemmer algorithm from OpenNLP.
+	 */
+	private static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
+
 	/**
 	 * An index to store words and the location (both file location and position in file) of where those words were found.
 	 */
@@ -41,7 +52,7 @@ public class InvertedIndexBuilder {
 	 */
 	public InvertedIndexBuilder(InvertedIndex index, Path input) throws IOException {
 		this(index);
-		transverse(input);
+		this.traverse(input);
 	}
 
 	/**
@@ -55,28 +66,64 @@ public class InvertedIndexBuilder {
 	}
 
 	/**
-	 * Adds a non-directory file into
+	 * Adds a non-directory file into the index
 	 *
 	 * @param input the path to be added into InvertedIndex
 	 * @return the reference of this object
 	 * @throws IOException if the files could not be inserted
 	 */
 	public InvertedIndexBuilder addFile(Path input) throws IOException {
-		index.index(input);
+		InvertedIndexBuilder.addFile(input, index);
 		return this;
 	}
 
 	/**
+	 * Adds a non-directory file into the index
+	 *
+	 * @param input the path to be added into InvertedIndex
+	 * @param index the index to be edited
+	 * @throws IOException if the files could not be inserted
+	 */
+	public static void addFile(Path input, InvertedIndex index) throws IOException {
+		Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
+		try (
+				BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
+		) {
+			String line;
+			long i = 0;
+			String inputString = input.toString();
+			while ((line = reader.readLine()) != null) {
+				for (String word : TextParser.parse(line)) {
+					index.indexPut(stemmer.stem(word).toString(), inputString, ++i);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Adds non-directory files into the index from directory input
+	 *
 	 * @param input the path to be added into InvertedIndex
 	 * @return the reference of this object
 	 * @throws IOException if the files could not be inserted
 	 */
-	public InvertedIndexBuilder transverse(Path input) throws IOException {
+	public InvertedIndexBuilder traverse(Path input) throws IOException {
+		InvertedIndexBuilder.traverse(input, index);
+		return this;
+	}
+
+	/**
+	 * Adds non-directory files into the index from directory input
+	 *
+	 * @param input the path to be added into InvertedIndex
+	 * @param index the index to be edited
+	 * @throws IOException if the files could not be inserted
+	 */
+	public static void traverse(Path input, InvertedIndex index) throws IOException {
 		List<Path> paths = getFiles(input);
 		for (Path in : paths) {
-			index.index(in);
+			addFile(in, index);
 		}
-		return this;
 	}
 
 	/**
@@ -112,25 +159,5 @@ public class InvertedIndexBuilder {
 	 */
 	public InvertedIndex getIndex() {
 		return index;
-	}
-
-	/**
-	 * Generates a JSON text file of the inverted index, stored at Path output
-	 *
-	 * @param output The output path to store the JSON object
-	 * @throws IOException if the output file could not be created or written
-	 */
-	public void indexToJSON(Path output) throws IOException {
-		index.indexToJSON(output);
-	}
-
-	/**
-	 * Generates a JSON text file of the count of words, stored at Path output
-	 *
-	 * @param output The output path to store the JSON object
-	 * @throws IOException if the output file could not be created or written
-	 */
-	public void countToJSON(Path output) throws IOException {
-		index.countToJSON(output);
 	}
 }

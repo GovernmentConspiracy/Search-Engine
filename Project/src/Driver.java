@@ -3,10 +3,6 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 
-/*
- * TODO Remove NEW* TODO comments after asking
- */
-
 /**
  * Class responsible for running this project based on the provided command-line
  * arguments. See the README for details.
@@ -78,13 +74,14 @@ public class Driver {
 		/*-----------------Start-----------------*/
 		ArgumentParser command = new ArgumentParser(args);
 		InvertedIndex index = new InvertedIndex();
+		InvertedIndexBuilder indexBuilder = new InvertedIndexBuilder(index);
 		Query query = new Query();
 
 		Path indexPath, queryPath;
 
 		if ((indexPath = command.getPath(PATH_FLAG)) != null) {
 			try {
-				SearchBuilder.indexTraverse(indexPath, index);
+				indexBuilder.traverse(indexPath);
 			} catch (IOException e) {
 				//TODO Logger
 				System.err.println("Input path for index could not be read. Check if other threads are accessing it.");
@@ -98,7 +95,7 @@ public class Driver {
 		if (command.hasFlag(INDEX_FLAG)) {
 			Path indexOutput = command.getPath(INDEX_FLAG, INDEX_DEFAULT_PATH);
 			try {
-				SearchBuilder.indexToJSON(indexOutput, index);
+				index.indexToJSON(indexOutput);
 			} catch (IOException e) {
 				//TODO Logger
 				System.err.println("Output path for index could not be written.");
@@ -112,7 +109,7 @@ public class Driver {
 		if (command.hasFlag(COUNTS_FLAG)) {
 			Path countsOutput = command.getPath(COUNTS_FLAG, COUNTS_DEFAULT_PATH);
 			try {
-				SearchBuilder.countToJSON(countsOutput, index);
+				index.countToJSON(countsOutput);
 			} catch (IOException e) {
 				//TODO Logger
 				System.err.println("Output path for counts could not be written.");
@@ -154,12 +151,4 @@ public class Driver {
 		double seconds = (double) elapsed.toMillis() / Duration.ofSeconds(1).toMillis();
 		System.out.printf("Elapsed: %f seconds%n", seconds);
 	}
-
-	/*
-	 * Generally, "driver" classes are responsible for setting up and calling other
-	 * classes, usually from a main() method that parses command-line parameters. If
-	 * the driver were only responsible for a single class, we use that class name.
-	 * For example, "PizzaDriver" is what we would name a driver class that just
-	 * sets up and calls the "Pizza" class.
-	 */
 }
