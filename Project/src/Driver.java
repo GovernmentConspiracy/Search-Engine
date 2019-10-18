@@ -3,16 +3,6 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 
-/*
- * TODO I love all the design considerations in your code. Just be careful...
- * starting to lean a little into the world of "overengineering" with some
- * of the solutions. I don't want to discourage it too much; it is good to try
- * and be creative making the best possible design within the scope of this class.
- * Outside of this class, you'll have to find a balance between designing for
- * what you need vs flexibility/generalization based on the pressures of the
- * specific work environment.
- */
-
 /**
  * Class responsible for running this project based on the provided command-line
  * arguments. See the README for details.
@@ -68,7 +58,7 @@ public class Driver {
 
 		if ((input = command.getPath(PATH_FLAG)) != null) {
 			try {
-				indexBuilder.transverse(input);
+				indexBuilder.traverse(input);
 			} catch (IOException e) {
 				System.err.println("Input path for index could not be read. Check if other threads are accessing it.");
 				System.err.println(e.getMessage());
@@ -108,13 +98,4 @@ public class Driver {
 		double seconds = (double) elapsed.toMillis() / Duration.ofSeconds(1).toMillis();
 		System.out.printf("Elapsed: %f seconds%n", seconds);
 	}
-
-	// TODO Can delete this comment below.
-	/*
-	 * Generally, "driver" classes are responsible for setting up and calling other
-	 * classes, usually from a main() method that parses command-line parameters. If
-	 * the driver were only responsible for a single class, we use that class name.
-	 * For example, "PizzaDriver" is what we would name a driver class that just
-	 * sets up and calls the "Pizza" class.
-	 */
 }

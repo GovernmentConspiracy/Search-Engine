@@ -14,7 +14,7 @@ import java.util.List;
  * the location (both file location and position in file) of where those words were found.
  *
  * @author Jason Liang
- * @version v1.2.0
+ * @version v1.3.0
  */
 public class InvertedIndexBuilder {
 	/**
@@ -52,7 +52,7 @@ public class InvertedIndexBuilder {
 	 */
 	public InvertedIndexBuilder(InvertedIndex index, Path input) throws IOException {
 		this(index);
-		transverse(input);
+		this.traverse(input);
 	}
 
 	/**
@@ -66,42 +66,62 @@ public class InvertedIndexBuilder {
 	}
 
 	/**
-	 * Adds a non-directory file into
+	 * Adds a non-directory file into the index
 	 *
 	 * @param input the path to be added into InvertedIndex
 	 * @return the reference of this object
 	 * @throws IOException if the files could not be inserted
 	 */
 	public InvertedIndexBuilder addFile(Path input) throws IOException {
+		InvertedIndexBuilder.addFile(input, index);
+		return this;
+	}
+
+	/**
+	 * Adds a non-directory file into the index
+	 *
+	 * @param input the path to be added into InvertedIndex
+	 * @throws IOException if the files could not be inserted
+	 */
+	public static void addFile(Path input, InvertedIndex index) throws IOException {
 		Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
 		try (
 				BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
 		) {
 			String line;
 			long i = 0;
-			// TODO String location = input.toString(); <--- and then use below so you do not recalculate this each loop
+			String inputString = input.toString();
 			while ((line = reader.readLine()) != null) {
 				for (String word : TextParser.parse(line)) {
-					index.indexPut(stemmer.stem(word).toString(), input.toString(), ++i);
+					index.indexPut(stemmer.stem(word).toString(), inputString, ++i);
 				}
 			}
 		}
-		return this;
 	}
 
 	/**
-	 * TODO Add description of method here. 
-	 * 
+	 * Adds non-directory files into the index from directory input
+	 *
 	 * @param input the path to be added into InvertedIndex
 	 * @return the reference of this object
 	 * @throws IOException if the files could not be inserted
 	 */
-	public InvertedIndexBuilder transverse(Path input) throws IOException {
+	public InvertedIndexBuilder traverse(Path input) throws IOException {
+		InvertedIndexBuilder.traverse(input, index);
+		return this;
+	}
+
+	/**
+	 * Adds non-directory files into the index from directory input
+	 *
+	 * @param input the path to be added into InvertedIndex
+	 * @throws IOException if the files could not be inserted
+	 */
+	public static void traverse(Path input, InvertedIndex index) throws IOException {
 		List<Path> paths = getFiles(input);
 		for (Path in : paths) {
-			addFile(in);
+			addFile(in, index);
 		}
-		return this;
 	}
 
 	/**
@@ -138,18 +158,4 @@ public class InvertedIndexBuilder {
 	public InvertedIndex getIndex() {
 		return index;
 	}
-	
-	/*
-	 * TODO For reasons I'll explain later, it helps for project 3 to have a static
-	 * and non-static version of your addFile(Path) method. My suggestion is this:
-	 * 
-	 * public static void addFile(Path input, InvertedIndex index) throws IOException {
-	 * 		the code you have in your addFile now, without returning a builder instance
-	 * }
-	 * 
-	 * public InvertedIndexBuilder addFile(Path input) throws IOException {
-	 * 		addFile(input, index);
-	 * 		return this;
-	 * }
-	 */
 }

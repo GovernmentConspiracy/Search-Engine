@@ -7,17 +7,16 @@ import java.util.*;
  * <p>Auxiliary functions includes word counter and JSON writer
  *
  * @author Jason Liang
- * @version v1.2.0
+ * @version v1.3.0
  */
 public class InvertedIndex {
 
-	// TODO Do not upcast here---tree data structures will be useful for efficient search
 	/**
 	 * Nested data structure used to store location of where a word was found.
 	 * Outer map stores (key - value) as (word - file location)
 	 * Inner map stores (key - value) as (file location - position in file)
 	 */
-	private final Map<String, Map<String, Set<Long>>> indexMap; //String1 = word, String2 = Path, Set1 = Location
+	private final TreeMap<String, TreeMap<String, TreeSet<Long>>> indexMap; //String1 = word, String2 = Path, Set1 = Location
 
 	/**
 	 * Nested data structure used to store word count of a file
@@ -156,8 +155,9 @@ public class InvertedIndex {
 	 * @return an unmodifiable set of indexMap.get(word).ketSet()
 	 */
 	public Set<String> getLocations(String word) {
-		if (contains(word))
+		if (contains(word)) {
 			return Collections.unmodifiableSet(indexMap.get(word).keySet());
+		}
 		return Collections.emptySet();
 	}
 
@@ -169,8 +169,9 @@ public class InvertedIndex {
 	 * @return an unmodifiable set of indexMap.get(word).get(location)
 	 */
 	public Set<Long> getPositions(String word, String location) {
-		if (contains(word, location))
+		if (contains(word, location)) {
 			return Collections.unmodifiableSet(indexMap.get(word).get(location));
+		}
 		return Collections.emptySet();
 	}
 
@@ -182,9 +183,4 @@ public class InvertedIndex {
 	public Map<String, Long> getCounts() {
 		return Collections.unmodifiableMap(countMap);
 	}
-
-	/*
-	 * TODO Try to avoid 1-line if statements without curly braces.
-	 * (Look up the "goto fail" bug.)
-	 */
 }
