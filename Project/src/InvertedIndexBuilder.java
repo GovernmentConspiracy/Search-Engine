@@ -81,6 +81,7 @@ public class InvertedIndexBuilder {
 	 * Adds a non-directory file into the index
 	 *
 	 * @param input the path to be added into InvertedIndex
+	 * @param index the index to be edited
 	 * @throws IOException if the files could not be inserted
 	 */
 	public static void addFile(Path input, InvertedIndex index) throws IOException {
@@ -115,6 +116,7 @@ public class InvertedIndexBuilder {
 	 * Adds non-directory files into the index from directory input
 	 *
 	 * @param input the path to be added into InvertedIndex
+	 * @param index the index to be edited
 	 * @throws IOException if the files could not be inserted
 	 */
 	public static void traverse(Path input, InvertedIndex index) throws IOException {
