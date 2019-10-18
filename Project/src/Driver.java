@@ -74,14 +74,13 @@ public class Driver {
 		/*-----------------Start-----------------*/
 		ArgumentParser command = new ArgumentParser(args);
 		InvertedIndex index = new InvertedIndex();
-		InvertedIndexBuilder indexBuilder = new InvertedIndexBuilder(index);
 		Query query = new Query();
 
 		Path indexPath, queryPath;
 
 		if ((indexPath = command.getPath(PATH_FLAG)) != null) {
 			try {
-				indexBuilder.traverse(indexPath);
+				InvertedIndexBuilder.traverse(indexPath, index);
 			} catch (IOException e) {
 				//TODO Logger
 				System.err.println("Input path for index could not be read. Check if other threads are accessing it.");
@@ -134,7 +133,7 @@ public class Driver {
 		if (command.hasFlag(RESULTS_FLAG)) {
 			Path resultsOutput = command.getPath(RESULTS_FLAG, RESULTS_DEFAULT_PATH);
 			try {
-				SearchBuilder.queryToJSON(resultsOutput, query);
+				query.queryToJSON(resultsOutput);
 			} catch (IOException e) {
 				//TODO Logger
 				System.err.println("Output path for counts could not be written.");

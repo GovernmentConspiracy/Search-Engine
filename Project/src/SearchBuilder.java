@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-//TODO refactor whole builder class to accept Query
+//TODO refactor whole builder class to accept Query but not Index
 
 /**
  * A builder class for inverted index and query, where an index stores words and
@@ -28,32 +28,6 @@ public class SearchBuilder {
 	 * Do not instantiate.
 	 */
 	private SearchBuilder() {
-	}
-
-	/**
-	 * Adds a non-directory file input into index
-	 *
-	 * @param input the path to be added into InvertedIndex
-	 * @param index the index to be filled
-	 * @return the reference of this object
-	 * @throws IOException if the files could not be inserted
-	 */
-	public static void addIndexPath(Path input, InvertedIndex index) throws IOException {
-		index.index(input);
-	}
-
-	/**
-	 * Adds all files and sub-files of directory input into index
-	 *
-	 * @param input the path to be added into InvertedIndex
-	 * @param index the index to be filled
-	 * @throws IOException if the files could not be inserted
-	 */
-	public static void indexTraverse(Path input, InvertedIndex index) throws IOException {
-		List<Path> paths = getFiles(input);
-		for (Path in : paths) {
-			addIndexPath(in, index);
-		}
 	}
 
 	/**

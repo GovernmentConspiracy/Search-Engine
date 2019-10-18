@@ -44,32 +44,6 @@ public class InvertedIndex {
 	}
 
 	/**
-	 * Generates word - path - location pairs onto a nested map structure,
-	 * storing where a stemmed word was found in a file and position
-	 *
-	 * @param input The file path which populates {@code indexMap}
-	 * @throws IOException if path input could not be read
-	 * @see #indexMap
-	 */
-	public void index(Path input) throws IOException {
-		Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
-		try (
-				BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
-		) {
-			String line;
-			long i = 0;
-			while ((line = reader.readLine()) != null) {
-				for (String word : TextParser.parse(line)) {
-					indexPut(stemmer.stem(word).toString(), input.toString(), ++i);
-				}
-			}
-			if (i > 0)
-				countMap.put(input.toString(), i); //writes into count map
-		}
-
-	}
-
-	/**
 	 * Helper method used to store word, pathString, and location into indexMap. See usages below
 	 *
 	 * @param word       A word made from a stemmed string. Used as the outer map key
@@ -122,8 +96,9 @@ public class InvertedIndex {
 	 * @return
 	 */
 	public Map<String, Long> getWordFileCount(String word, boolean exact) {
-		if (exact)
+		if (exact) {
 			return getExactWordFileCount(word);
+		}
 		return getPartialWordFileCount(word);
 	}
 
@@ -155,6 +130,11 @@ public class InvertedIndex {
 		return Collections.emptyMap();
 	}
 
+	/**
+	 * Returns an unmodifiable map of the countMap
+	 *
+	 * @return an unmodifiable map of the countMap
+	 */
 	public Map<String, Long> getCounts() {
 		return Collections.unmodifiableMap(countMap);
 	}
@@ -259,12 +239,4 @@ public class InvertedIndex {
 		return Collections.emptySet();
 	}
 
-	/**
-	 * Returns an unmodifiable map of the countMap
-	 *
-	 * @return an unmodifiable map of the countMap
-	 */
-	public Map<String, Long> getCounts() {
-		return Collections.unmodifiableMap(countMap);
-	}
 }
