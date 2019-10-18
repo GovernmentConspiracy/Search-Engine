@@ -1,6 +1,13 @@
+import opennlp.tools.stemmer.Stemmer;
+import opennlp.tools.stemmer.snowball.SnowballStemmer;
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * An index to store words and the location (both file location and position in file) of where those words were found.
@@ -10,6 +17,10 @@ import java.util.*;
  * @version v1.3.0
  */
 public class InvertedIndex {
+	/**
+	 * Default SnowballStemmer algorithm from OpenNLP.
+	 */
+	private static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
 
 	/**
 	 * Nested data structure used to store location of where a word was found.
@@ -22,8 +33,8 @@ public class InvertedIndex {
 	 * Nested data structure used to store word count of a file
 	 * Map stores (key - value) as (file location - number count)
 	 */
-	private final Map<String, Long> countMap;
-	
+	private final TreeMap<String, Long> countMap;
+
 	/**
 	 * Constructs a new empty inverted index and can pass in acceptable file extensions
 	 */
@@ -71,9 +82,61 @@ public class InvertedIndex {
 		try {
 			indexToJSON(output);
 		} catch (IOException e) {
+			//TODO logger
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Gives the source to Query through SearchBuilder
+	 *
+	 * @param word
+	 * @param exact
+	 * @return
+	 */
+	public Map<String, Long> getWordFileCount(String word, boolean exact) {
+		if (exact) {
+			return getExactWordFileCount(word);
+		}
+		return getPartialWordFileCount(word);
+	}
+
+	private Map<String, Long> getExactWordFileCount(String word) {
+		var map = indexMap.get(word);
+		if (map != null) {
+			return map.entrySet()
+					.stream()
+					.collect(
+							Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> (long) e.getValue().size())
+					);
+		}
+		return Collections.emptyMap();
+	}
+
+	//TODO Fix this bad boy
+	private Map<String, Long> getPartialWordFileCount(String word) {
+		if (!indexMap.isEmpty()) {
+			return indexMap.entrySet().stream()
+					.filter(e -> e.getKey().startsWith(word))
+					.map(Map.Entry::getValue)
+					.flatMap(e -> e.entrySet().stream())
+					.collect(
+							Collectors.toUnmodifiableMap(
+									Map.Entry::getKey, e -> (long) e.getValue().size(), Long::sum //resolve duplicates with merge
+							)
+					);
+		}
+		return Collections.emptyMap();
+	}
+
+	/**
+	 * Returns an unmodifiable map of the countMap
+	 *
+	 * @return an unmodifiable map of the countMap
+	 */
+	public Map<String, Long> getCounts() {
+		return Collections.unmodifiableMap(countMap);
 	}
 
 	/**
@@ -97,6 +160,7 @@ public class InvertedIndex {
 		try {
 			countToJSON(output);
 		} catch (IOException e) {
+			//TODO logger
 			return false;
 		}
 		return true;
@@ -175,12 +239,4 @@ public class InvertedIndex {
 		return Collections.emptySet();
 	}
 
-	/**
-	 * Returns an unmodifiable map of the countMap
-	 *
-	 * @return an unmodifiable map of the countMap
-	 */
-	public Map<String, Long> getCounts() {
-		return Collections.unmodifiableMap(countMap);
-	}
 }

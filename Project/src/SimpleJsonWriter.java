@@ -32,12 +32,13 @@ public final class SimpleJsonWriter {
 	 * @param elements the elements to write
 	 * @param writer   the writer to use
 	 * @param level    the initial indent level
+	 * @param <V>      the element type stored in elements
 	 * @throws IOException if file is not found
-	 * @see #asDependentGenericArray(Collection, Writer, int)
+	 * @see #asDependentArray(Collection, Writer, int)
 	 */
-	public static void asArray(Collection<?> elements, Writer writer, int level) throws IOException {
+	public static <V> void asArray(Collection<V> elements, Writer writer, int level) throws IOException {
 		indent(writer, level);
-		asDependentGenericArray(elements, writer, level);
+		asDependentArray(elements, writer, level);
 		writer.write('\n');
 	}
 
@@ -46,10 +47,11 @@ public final class SimpleJsonWriter {
 	 *
 	 * @param elements the elements to write
 	 * @param path     the file path to use
+	 * @param <V>      the element type stored in elements
 	 * @throws IOException if file is not found
 	 * @see #asArray(Collection, Writer, int)
 	 */
-	public static void asArray(Collection<?> elements, Path path) throws IOException {
+	public static <V> void asArray(Collection<V> elements, Path path) throws IOException {
 		// THIS CODE IS PROVIDED FOR YOU; DO NOT MODIFY
 		try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
 			asArray(elements, writer, 0);
@@ -60,16 +62,19 @@ public final class SimpleJsonWriter {
 	 * Returns the elements as a pretty JSON array.
 	 *
 	 * @param elements the elements to use
+	 * @param <V>      the element type stored in elements
 	 * @return a {@link String} containing the elements in pretty JSON format
 	 * @see #asArray(Collection, Writer, int)
 	 */
-	public static String asArray(Collection<?> elements) {
+	public static <V> String asArray(Collection<V> elements) {
 		// THIS CODE IS PROVIDED FOR YOU; DO NOT MODIFY
 		try {
 			StringWriter writer = new StringWriter();
 			asArray(elements, writer, 0);
 			return writer.toString();
 		} catch (IOException e) {
+			//TODO logger
+//            System.out.println("Could not generate a String");
 			return null;
 		}
 	}
@@ -80,27 +85,43 @@ public final class SimpleJsonWriter {
 	 * @param elements the elements to write
 	 * @param writer   the writer to use
 	 * @param level    the initial indent level
+	 * @param <V>      the element type stored in elements
 	 * @throws IOException if file is not found
 	 * @see #asArray(Collection, Writer, int)
 	 */
-	private static void asDependentGenericArray(Collection<?> elements, Writer writer, int level) throws IOException {
+	private static <V> void asDependentArray(Collection<V> elements, Writer writer, int level) throws IOException {
 		writer.write('[');
 		Iterator<?> elemIterator = elements.iterator();
 
 		if (elemIterator.hasNext()) {
 			writer.write('\n');
-			indent(elemIterator.next().toString(), writer, level + 1);
+			asArrayVariable(elemIterator.next(), writer, level);
 		}
 
 		while (elemIterator.hasNext()) {
 			writer.write(',');
 			writer.write('\n');
-			indent(elemIterator.next().toString(), writer, level + 1);
+			asArrayVariable(elemIterator.next(), writer, level);
 		}
 
 		writer.write('\n');
 
 		indent("]", writer, level);
+	}
+
+	/**
+	 * Helper method for writing an element's value
+	 *
+	 * @param element the element to be written
+	 * @param writer  the writer to use
+	 * @param level   the initial intent level
+	 * @param <V>     the element type
+	 * @throws IOException if file is not found
+	 * @see #asVariable(Object, Writer, int)
+	 */
+	private static <V> void asArrayVariable(V element, Writer writer, int level) throws IOException {
+		indent(writer, level + 1);
+		asVariable(element, writer, level);
 	}
 
 	/**
@@ -116,6 +137,7 @@ public final class SimpleJsonWriter {
 			asObject(elements, writer, 0);
 			return writer.toString();
 		} catch (IOException e) {
+			//TODO logger
 			return null;
 		}
 	}
@@ -147,7 +169,7 @@ public final class SimpleJsonWriter {
 	 */
 	public static void asObject(Map<?, ?> elements, Writer writer, int level) throws IOException {
 		indent(writer, level);
-		asDependentGenericObject(elements, writer, level);
+		asDependentObject(elements, writer, level);
 		writer.write('\n');
 	}
 
@@ -160,7 +182,7 @@ public final class SimpleJsonWriter {
 	 * @throws IOException if file is not found
 	 * @see #asObject(Map, Writer, int)
 	 */
-	private static void asDependentGenericObject(Set<? extends Map.Entry<?, ?>> elements, Writer writer, int level) throws IOException {
+	private static void asDependentObject(Set<? extends Map.Entry<?, ?>> elements, Writer writer, int level) throws IOException {
 		var elemIterator = elements.iterator();
 		writer.write('{');
 
@@ -189,8 +211,8 @@ public final class SimpleJsonWriter {
 	 * @param level    the initial indent level
 	 * @throws IOException if file is not found
 	 */
-	private static void asDependentGenericObject(Map<?, ?> elements, Writer writer, int level) throws IOException {
-		asDependentGenericObject(elements.entrySet(), writer, level);
+	private static void asDependentObject(Map<?, ?> elements, Writer writer, int level) throws IOException {
+		asDependentObject(elements.entrySet(), writer, level);
 	}
 
 	/**
@@ -200,18 +222,33 @@ public final class SimpleJsonWriter {
 	 * @param writer  the writer to use
 	 * @param level   the initial indent level
 	 * @throws IOException if file is not found
+	 * @see #asVariable(Object, Writer, int)
 	 */
 	private static void asObjectVariable(Map.Entry<?, ?> element, Writer writer, int level) throws IOException {
 		quote(element.getKey().toString(), writer, level + 1);
 		writer.write(": ");
-		var type = element.getValue();
-		//Why is there no switch case for this??
-		if (type instanceof Collection<?>) {
-			asDependentGenericArray((Collection<?>) type, writer, level + 1);
-		} else if (type instanceof Map<?, ?>) {
-			asDependentGenericObject((Map<?, ?>) type, writer, level + 1);
+		asVariable(element.getValue(), writer, level);
+	}
+
+	/**
+	 * Helper method for writing an element's value
+	 *
+	 * @param element the element to write
+	 * @param writer  the writer to use
+	 * @param level   the initial indent level
+	 * @throws IOException if file is not found
+	 */
+	private static <V> void asVariable(V element, Writer writer, int level) throws IOException {
+		if (element instanceof Map<?, ?>) {
+			asDependentObject((Map<?, ?>) element, writer, level + 1);
+		} else if (element instanceof Collection<?>) {
+			asDependentArray((Collection<?>) element, writer, level + 1);
+		} else if (element instanceof String) {
+			quote(element.toString(), writer);
+		} else if (element instanceof JSONObject) {
+			((JSONObject) element).toJSON(writer, level);
 		} else {
-			writer.write(type.toString());
+			writer.write(element.toString());
 		}
 	}
 
@@ -222,7 +259,7 @@ public final class SimpleJsonWriter {
 	 * @param times  the number of times to write a tab symbol
 	 * @throws IOException if file is not found
 	 */
-	private static void indent(Writer writer, int times) throws IOException {
+	public static void indent(Writer writer, int times) throws IOException {
 		// THIS CODE IS PROVIDED FOR YOU; DO NOT MODIFY
 		for (int i = 0; i < times; i++) {
 			writer.write('\t');
@@ -238,7 +275,7 @@ public final class SimpleJsonWriter {
 	 * @throws IOException if file is not found
 	 * @see #indent(Writer, int)
 	 */
-	private static void indent(String element, Writer writer, int times) throws IOException {
+	public static void indent(String element, Writer writer, int times) throws IOException {
 		// THIS CODE IS PROVIDED FOR YOU; DO NOT MODIFY
 		indent(writer, times);
 		writer.write(element);
@@ -251,7 +288,7 @@ public final class SimpleJsonWriter {
 	 * @param writer  the writer to use
 	 * @throws IOException if file is not found
 	 */
-	private static void quote(String element, Writer writer) throws IOException {
+	public static void quote(String element, Writer writer) throws IOException {
 		// THIS CODE IS PROVIDED FOR YOU; DO NOT MODIFY
 		writer.write('"');
 		writer.write(element);
@@ -269,7 +306,7 @@ public final class SimpleJsonWriter {
 	 * @see #indent(Writer, int)
 	 * @see #quote(String, Writer)
 	 */
-	private static void quote(String element, Writer writer, int times) throws IOException {
+	public static void quote(String element, Writer writer, int times) throws IOException {
 		// THIS CODE IS PROVIDED FOR YOU; DO NOT MODIFY
 		indent(writer, times);
 		quote(element, writer);
