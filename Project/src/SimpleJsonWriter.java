@@ -246,7 +246,7 @@ public final class SimpleJsonWriter {
 		} else if (element instanceof String) {
 			quote(element.toString(), writer);
 		} else if (element instanceof JSONObject) {
-			((JSONObject) element).toJSON(writer, level);
+			((JSONObject) element).toJSONObject(writer, level);
 		} else {
 			writer.write(element.toString());
 		}

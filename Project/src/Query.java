@@ -1,3 +1,6 @@
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -11,8 +14,9 @@ import java.util.*;
  * @version v2.0.0
  */
 public class Query {
-	private final Map<String, Set<SearchResult>> queryEntries; //TreeMap<String, TreeSet<SearchResult>>
 
+
+	private final Map<String, Set<SearchResult>> queryEntries; //TreeMap<String, TreeSet<SearchResult>>
 
 	public Query() {
 		queryEntries = new TreeMap<>();
@@ -35,6 +39,7 @@ public class Query {
 	 * Search results
 	 */
 	public static class SearchResult implements Comparable<SearchResult>, JSONObject {
+		private static final Logger log = LogManager.getLogger();
 
 		private String where;
 		private Long count;
@@ -42,7 +47,7 @@ public class Query {
 
 		private static String SCORE_FORMAT = "%.8f";
 		private static final String FORMATTED =
-				"{\n\twhere: \"%s\",\n\tcount: %d,\n\tscore: %s\n}";
+				"{\n\twhere: \"%s\",\n\tcount: %d,\n\tscore: %s\n}"; //Want to use it in a certain context
 
 		public SearchResult(String where, Long count, Double score) {
 			this.where = where;
@@ -68,9 +73,6 @@ public class Query {
 			if ((temp = -Double.compare(this.score, other.score)) == 0) {
 				if ((temp = -Long.compare(this.count, other.count)) == 0) {
 					return this.where.compareToIgnoreCase(other.where);
-//					if ((temp = this.where.compareToIgnoreCase(other.where)) == 0) {
-//						return 0;
-//					}
 				}
 			}
 			return temp;
@@ -78,22 +80,23 @@ public class Query {
 
 		@Override
 		public String toString() {
-			return String.format(FORMATTED, where, count, String.format(SCORE_FORMAT, score));
+			return this.toJSONObjectString(0);
 		}
 
+		@Override
 		public String toJSONObjectString(int indent) {
 			try {
 				StringWriter writer = new StringWriter();
-				this.toJSON(writer, indent);
+				this.toJSONObject(writer, indent);
 				return writer.toString();
 			} catch (IOException e) {
-				//TODO logger
+				log.warn("String representation of {} could not be made.", this.getClass().toString());
 				return null;
 			}
 		}
 
 		@Override
-		public void toJSON(Writer writer, int indent) throws IOException {
+		public void toJSONObject(Writer writer, int indent) throws IOException {
 			SimpleJsonWriter.indent(writer, indent);
 			writer.write("{\n");
 			SimpleJsonWriter.indent(writer, indent + 1);
@@ -111,7 +114,5 @@ public class Query {
 			SimpleJsonWriter.indent(writer, indent);
 			writer.write('}');
 		}
-
-
 	}
 }

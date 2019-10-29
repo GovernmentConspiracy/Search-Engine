@@ -25,9 +25,21 @@ public class SearchBuilder {
 	private static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
 
 	/**
-	 * Do not instantiate.
+	 * An query to store words and the location (both file location and position in file) of where those words were found.
 	 */
-	private SearchBuilder() {
+	private final Query query;
+
+	/**
+	 * //TODO
+	 *
+	 * @param query
+	 */
+	public SearchBuilder(Query query) {
+		this.query = query;
+	}
+
+	public SearchBuilder() {
+		this(new Query());
 	}
 
 	/**
@@ -58,30 +70,8 @@ public class SearchBuilder {
 	}
 
 	/**
-	 * Generates a JSON text file of the inverted index, stored at Path output
-	 *
-	 * @param output The output path to store the JSON object
-	 * @param index  the index to be filled
-	 * @throws IOException if the output file could not be created or written
-	 */
-	public static void indexToJSON(Path output, InvertedIndex index) throws IOException {
-		index.indexToJSON(output);
-	}
-
-	/**
-	 * Generates a JSON text file of the count of words, stored at Path output
-	 *
-	 * @param output The output path to store the JSON object
-	 * @param index  the index to be filled
-	 * @throws IOException if the output file could not be created or written
-	 */
-	public static void countToJSON(Path output, InvertedIndex index) throws IOException {
-		index.countToJSON(output);
-	}
-
-	/**
 	 * A behemoth of a function
-	 *
+	 * //TODO
 	 * @param input
 	 * @param query
 	 * @param index
@@ -89,8 +79,9 @@ public class SearchBuilder {
 	 * @throws IOException
 	 */
 	public static void addQueryPath(Path input, Query query, InvertedIndex index, boolean exact) throws IOException {
-		if (Files.isDirectory(input))
-			throw new IOException("Wrong file type");
+		if (Files.isDirectory(input)) {
+			throw new IOException("Query Path: Wrong file type");
+		}
 		Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
 		try (
 				BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
@@ -122,12 +113,12 @@ public class SearchBuilder {
 		}
 	}
 
-//	public static void queryTraverse(Path input, Query query, InvertedIndex index) throws IOException {
-//		List<Path> paths = getFiles(input);
-//		for (Path in : paths) {
-//			addQueryPath(in, query, index);
-//		}
-//	}
+	public static void queryTraverse(Path input, Query query, InvertedIndex index) throws IOException {
+		List<Path> paths = getFiles(input);
+		for (Path in : paths) {
+			addQueryPath(in, query, index, true);
+		}
+	}
 
 	public static void queryToJSON(Path output, Query query) throws IOException {
 		query.queryToJSON(output);

@@ -18,11 +18,6 @@ import java.util.stream.Collectors;
  */
 public class InvertedIndex {
 	/**
-	 * Default SnowballStemmer algorithm from OpenNLP.
-	 */
-	private static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
-
-	/**
 	 * Nested data structure used to store location of where a word was found.
 	 * Outer map stores (key - value) as (word - file location)
 	 * Inner map stores (key - value) as (file location - position in file)
@@ -90,7 +85,7 @@ public class InvertedIndex {
 
 	/**
 	 * Gives the source to Query through SearchBuilder
-	 *
+	 * //TODO
 	 * @param word
 	 * @param exact
 	 * @return
@@ -102,19 +97,30 @@ public class InvertedIndex {
 		return getPartialWordFileCount(word);
 	}
 
+	/**
+	 * //TODO
+	 *
+	 * @param word
+	 * @return
+	 */
 	private Map<String, Long> getExactWordFileCount(String word) {
-		var map = indexMap.get(word);
-		if (map != null) {
-			return map.entrySet()
+		if (contains(word)) {
+			return indexMap.get(word).entrySet()
 					.stream()
 					.collect(
-							Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> (long) e.getValue().size())
+							Collectors.toUnmodifiableMap(
+									Map.Entry::getKey, e -> (long) e.getValue().size()
+							)
 					);
 		}
 		return Collections.emptyMap();
 	}
 
-	//TODO Fix this bad boy
+	/**
+	 * //TODO
+	 * @param word
+	 * @return
+	 */
 	private Map<String, Long> getPartialWordFileCount(String word) {
 		if (!indexMap.isEmpty()) {
 			return indexMap.entrySet().stream()
@@ -123,7 +129,7 @@ public class InvertedIndex {
 					.flatMap(e -> e.entrySet().stream())
 					.collect(
 							Collectors.toUnmodifiableMap(
-									Map.Entry::getKey, e -> (long) e.getValue().size(), Long::sum //resolve duplicates with merge
+									Map.Entry::getKey, e -> (long) e.getValue().size(), Long::sum //resolve duplicates with addition
 							)
 					);
 		}

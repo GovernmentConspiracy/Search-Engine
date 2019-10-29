@@ -102,7 +102,6 @@ public class Driver {
 				System.err.println(e.getMessage());
 				System.err.println();
 			}
-
 		}
 
 		if (command.hasFlag(COUNTS_FLAG)) {
