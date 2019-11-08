@@ -39,8 +39,6 @@ public class Query {
 	 * Search results
 	 */
 	public static class SearchResult implements Comparable<SearchResult>, JSONObject {
-		private static final Logger log = LogManager.getLogger();
-
 		private String where;
 		private Long count;
 		private Double score;
@@ -81,18 +79,6 @@ public class Query {
 		@Override
 		public String toString() {
 			return this.toJSONObjectString(0);
-		}
-
-		@Override
-		public String toJSONObjectString(int indent) {
-			try {
-				StringWriter writer = new StringWriter();
-				this.toJSONObject(writer, indent);
-				return writer.toString();
-			} catch (IOException e) {
-				log.warn("String representation of {} could not be made.", this.getClass().toString());
-				return null;
-			}
 		}
 
 		@Override

@@ -1,10 +1,4 @@
-import opennlp.tools.stemmer.Stemmer;
-import opennlp.tools.stemmer.snowball.SnowballStemmer;
-
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -77,7 +71,6 @@ public class InvertedIndex {
 		try {
 			indexToJSON(output);
 		} catch (IOException e) {
-			//TODO logger
 			return false;
 		}
 		return true;
