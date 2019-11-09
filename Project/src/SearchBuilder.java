@@ -1,5 +1,7 @@
 import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,6 +20,9 @@ import java.util.*;
  * @version v2.0.0
  */
 public class SearchBuilder {
+
+	private static final Logger log = LogManager.getLogger();
+
 	/**
 	 * Default SnowballStemmer algorithm from OpenNLP.
 	 */
@@ -118,11 +123,11 @@ public class SearchBuilder {
 	 * @param input
 	 * @param query
 	 * @param index
-	 * @param threads
+	 * @param queue
 	 * @param exact
 	 * @throws IOException
 	 */
-	public static void addQueryPath(Path input, Query query, InvertedIndex index, int threads, boolean exact) throws IOException {
+	public static void addQueryPath(Path input, Query query, InvertedIndex index, WorkQueue queue, boolean exact) throws IOException {
 		if (Files.isDirectory(input)) {
 			throw new IOException("Query Path: Wrong file type");
 		}
@@ -136,14 +141,22 @@ public class SearchBuilder {
 				Set<String> usedPhrases = new TreeSet<>(); //used to create finalString and stop duplicates
 				Map<String, Long> fileCount = new TreeMap<>(); //Used to merge all files
 				for (String word : TextParser.parse(line)) {
+
 					word = stemmer.stem(word).toString();
 
 					if (usedPhrases.add(word)) {
-						index.getWordFileCount(word, exact)
-								.forEach((key, value) ->
-										fileCount.put(key, fileCount.getOrDefault(key, (long) 0) + value));
+						queue.execute(new CountTask(index, fileCount, word, exact));
 					}
 				}
+
+				try {
+					log.debug("NOTIFICATION: .finish() called");
+					queue.finish();
+					log.debug("NOTIFICATION: .finish() ended");
+				} catch (InterruptedException e) {
+					log.error("Work did NOT finish.");
+				}
+
 				String lineFinal = String.join(" ", usedPhrases);
 
 				if (!fileCount.isEmpty()) {
@@ -153,6 +166,35 @@ public class SearchBuilder {
 					query.addEmptyQuery(lineFinal);
 				}
 			}
+		}
+	}
+
+	private static class CountTask implements Runnable {
+		private final InvertedIndex index;
+		private final Map<String, Long> fileCount;
+		private final String word;
+		private final boolean exact;
+
+
+		public CountTask(InvertedIndex index, Map<String, Long> fileCount, String word, boolean exact) {
+			this.index = index;
+			this.fileCount = fileCount;
+			this.word = word;
+			this.exact = exact;
+		}
+
+		@Override
+		public void run() {
+
+			Map<String, Long> tempCount = index.getWordFileCount(word, exact);
+			synchronized (fileCount) {
+				log.trace("Adding tempCount into fileCount...");
+				//expensive in memory
+				tempCount.forEach((key, value) ->
+						fileCount.put(key, fileCount.getOrDefault(key, (long) 0) + value));
+				log.trace("Added tempCount into fileCount!");
+			}
+
 		}
 	}
 
@@ -166,4 +208,6 @@ public class SearchBuilder {
 	public static void queryToJSON(Path output, Query query) throws IOException {
 		query.queryToJSON(output);
 	}
+
+
 }

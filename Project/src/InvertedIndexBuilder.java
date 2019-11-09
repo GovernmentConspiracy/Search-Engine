@@ -136,7 +136,7 @@ public class InvertedIndexBuilder {
 		int i = 0;
 		for (Path in : paths) {
 			log.trace("Executing {}...", ++i);
-			queue.execute(new WordIndexingTask(index, in)); //convert to runnable
+			queue.execute(new IndexingTask(index, in)); //convert to runnable
 		}
 
 		try {
@@ -148,31 +148,7 @@ public class InvertedIndexBuilder {
 		}
 	}
 
-	private static class WordIndexingTask implements Runnable {
-		private final InvertedIndex index;
-		private final Path path;
 
-		public WordIndexingTask(InvertedIndex index, Path path) {
-			this.index = index;
-			this.path = path;
-		}
-
-		@Override
-		public void run() {
-			InvertedIndex tempIndex = new InvertedIndex();
-			try {
-				log.trace("Adding file");
-				addFile(path, tempIndex);
-			} catch (IOException e) {
-				log.warn(e.getMessage());
-			}
-			synchronized (index) {
-				log.trace("Adding tempIndex into index...");
-				index.addAll(tempIndex); //Expensive in memory
-				log.trace("Added tempIndex into index!");
-			}
-		}
-	}
 
 	/**
 	 * Returns all paths of {@code Path input} recursively or an empty list if the files could not be generated.
@@ -207,5 +183,31 @@ public class InvertedIndexBuilder {
 	 */
 	public InvertedIndex getIndex() {
 		return index;
+	}
+
+	private static class IndexingTask implements Runnable {
+		private final InvertedIndex index;
+		private final Path path;
+
+		public IndexingTask(InvertedIndex index, Path path) {
+			this.index = index;
+			this.path = path;
+		}
+
+		@Override
+		public void run() {
+			InvertedIndex tempIndex = new InvertedIndex();
+			try {
+				log.trace("Adding file");
+				addFile(path, tempIndex);
+			} catch (IOException e) {
+				log.warn(e.getMessage());
+			}
+			synchronized (index) {
+				log.trace("Adding tempIndex into index...");
+				index.addAll(tempIndex); //Expensive in memory
+				log.trace("Added tempIndex into index!");
+			}
+		}
 	}
 }

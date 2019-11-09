@@ -145,7 +145,7 @@ public class Driver {
 
 		if ((queryPath = command.getPath(QUERY_FLAG)) != null) {
 			try {
-				SearchBuilder.addQueryPath(queryPath, query, index, command.hasFlag(EXACT_FLAG));
+				SearchBuilder.addQueryPath(queryPath, query, index, queue, command.hasFlag(EXACT_FLAG));
 			} catch (IOException e) {
 				//TODO Logger
 				System.err.println("Input path for index could not be read. Check if this is the correct path type.");
