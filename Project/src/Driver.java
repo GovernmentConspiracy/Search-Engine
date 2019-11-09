@@ -97,6 +97,11 @@ public class Driver {
 				threadCount = DEFAULT_THREADS;
 			}
 		}
+		if (threadCount <= 0) {
+			threadCount = DEFAULT_THREADS;
+		}
+
+		System.err.println("Count: " + threadCount);
 
 		log.trace("Thread count = {}", threadCount);
 

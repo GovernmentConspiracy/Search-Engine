@@ -135,7 +135,7 @@ public class WorkQueue {
 	public synchronized void decrement() {
 		pending--;
 		log.trace("Decremented. pending = {}", pending);
-		if (pending == 0 && queue.isEmpty()) {
+		if (pending == 0) {
 			this.notifyAll();
 			log.debug("Called notifyAll() at pending = {}", pending);
 		}
