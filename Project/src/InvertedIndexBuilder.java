@@ -1,5 +1,7 @@
 import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,6 +19,8 @@ import java.util.List;
  * @version v1.3.0
  */
 public class InvertedIndexBuilder {
+
+	private static final Logger log = LogManager.getLogger();
 	/**
 	 * Default SnowballStemmer algorithm from OpenNLP.
 	 */
@@ -85,6 +89,7 @@ public class InvertedIndexBuilder {
 	 * @throws IOException if the files could not be inserted
 	 */
 	public static void addFile(Path input, InvertedIndex index) throws IOException {
+		log.trace("Called addFile()");
 		Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
 		try (
 				BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
@@ -123,6 +128,54 @@ public class InvertedIndexBuilder {
 		List<Path> paths = getFiles(input);
 		for (Path in : paths) {
 			addFile(in, index);
+		}
+	}
+
+	public static void traverse(Path input, InvertedIndex index, int threads) throws IOException {
+		if (threads <= 1) {
+			traverse(input, index);
+		} else {
+			List<Path> paths = getFiles(input);
+			WorkQueue queue = new WorkQueue(threads);
+			int i = 0;
+			for (Path in : paths) {
+				log.trace("Executing {}...", ++i);
+				queue.execute(new WordIndexingTask(index, in)); //convert to runnable
+			}
+
+			try {
+				log.debug("NOTIFICATION: .finish() called");
+				queue.finish();
+				log.debug("NOTIFICATION: .finish() ended");
+			} catch (InterruptedException e) {
+				log.error("Work did NOT finish.");
+			}
+		}
+	}
+
+	private static class WordIndexingTask implements Runnable {
+		private final InvertedIndex index;
+		private final Path path;
+
+		public WordIndexingTask(InvertedIndex index, Path path) {
+			this.index = index;
+			this.path = path;
+		}
+
+		@Override
+		public void run() {
+			InvertedIndex tempIndex = new InvertedIndex();
+			try {
+				log.trace("Adding file");
+				addFile(path, tempIndex);
+			} catch (IOException e) {
+				log.warn(e.getMessage());
+			}
+			synchronized (index) {
+				log.trace("Adding tempIndex into index...");
+				index.addAll(tempIndex); //Expensive in memory
+				log.trace("Added tempIndex into index!");
+			}
 		}
 	}
 

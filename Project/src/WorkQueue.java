@@ -93,13 +93,14 @@ public class WorkQueue {
 
 		synchronized (queue) {
 			queue.notifyAll();
+			log.debug("Called finish... notified all.");
 		}
 
 		while (!queue.isEmpty() || pending > 0) {
 			synchronized (this) {
 				log.trace("finish() waiting at pending = {}.", pending);
-				this.wait(); //TODO FIx
-				log.debug("finish() woke up with pending = {}.", pending);
+				this.wait();
+				log.trace("finish() woke up with pending = {}.", pending);
 			}
 		}
 	}
@@ -109,9 +110,8 @@ public class WorkQueue {
 	 * but threads in-progress will not be interrupted.
 	 */
 	public void shutdown() {
-		// safe to do unsynchronized due to volatile keyword
 		shutdown = true;
-
+		log.warn("Shutdown has been called.");
 		synchronized (queue) {
 			queue.notifyAll();
 		}
@@ -129,14 +129,15 @@ public class WorkQueue {
 
 	public synchronized void increment() {
 		pending++;
+		log.trace("Incremented. pending = {}", pending);
 	}
 
 	public synchronized void decrement() {
 		pending--;
-
-		if (pending == 0) {
+		log.trace("Decremented. pending = {}", pending);
+		if (pending == 0 && queue.isEmpty()) {
 			this.notifyAll();
-			log.debug("Called notifyAll() that pending = {}", pending);
+			log.debug("Called notifyAll() at pending = {}", pending);
 		}
 	}
 
@@ -150,7 +151,7 @@ public class WorkQueue {
 
 		@Override
 		public void run() {
-			Runnable r = null;
+			Runnable task;
 
 			outer:
 			while (true) {
@@ -174,28 +175,26 @@ public class WorkQueue {
 						log.warn("Worker forcefully terminated. pending = {}", pending);
 						break;
 					} else {
-						r = queue.removeFirst();
+						task = queue.removeFirst();
 						increment();
 					}
 				}
 
 				try {
-					r.run();
+					task.run();
 					decrement();
 				} catch (RuntimeException ex) {
 					// catch runtime exceptions to avoid leaking threads
 					log.warn("Warning: Work queue encountered an exception while running.");
 				}
-
 			}
 
 			log.trace("Worker at pending = {} ended", pending);
 			if (pending == 0) {
 
 				synchronized (this) {
-					log.debug("Called this.notifyAll()");
 					this.notifyAll();
-
+					log.debug("Called this.notifyAll()");
 				}
 			}
 		}

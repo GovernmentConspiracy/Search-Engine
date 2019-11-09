@@ -238,4 +238,9 @@ public class InvertedIndex {
 		return Collections.emptySet();
 	}
 
+	public void addAll(InvertedIndex other) {
+		other.indexMap.forEach((word, wordValue) -> wordValue.forEach((path, pathValue) -> pathValue.forEach(
+				location -> this.indexPut(word, path, location)
+		)));
+	}
 }

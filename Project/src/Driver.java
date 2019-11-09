@@ -1,3 +1,6 @@
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -12,7 +15,7 @@ import java.time.Instant;
  * @version Fall 2019
  */
 public class Driver {
-
+	private static final Logger log = LogManager.getLogger();
 	/**
 	 * The default index path if no path is provided through command line.
 	 */
@@ -27,6 +30,11 @@ public class Driver {
 	 * The default results path if no path is provided through command line.
 	 */
 	private static final Path RESULTS_DEFAULT_PATH = Path.of("results.json");
+
+	/**
+	 * The default thread count if no count is specified in the thread flag.
+	 */
+	private static final int DEFAULT_THREADS = 5;
 
 
 	/**
@@ -61,6 +69,11 @@ public class Driver {
 	private static final String RESULTS_FLAG = "-results";
 
 	/**
+	 * A string representing the threads flag
+	 */
+	private static final String THREAD_FLAG = "-threads";
+
+	/**
 	 * Initializes the classes necessary based on the provided command-line
 	 * arguments. This includes (but is not limited to) how to build or search an
 	 * inverted index.
@@ -75,12 +88,23 @@ public class Driver {
 		ArgumentParser command = new ArgumentParser(args);
 		InvertedIndex index = new InvertedIndex();
 		Query query = new Query();
+		int threadCount = 1; //Single threaded
+
+		if (command.hasFlag(THREAD_FLAG)) {
+			try {
+				threadCount = Integer.parseInt(command.getString(THREAD_FLAG));
+			} catch (NumberFormatException e) {
+				threadCount = DEFAULT_THREADS;
+			}
+		}
+
+		log.trace("Thread count = {}", threadCount);
 
 		Path indexPath, queryPath;
-
+		log.trace("Started");
 		if ((indexPath = command.getPath(PATH_FLAG)) != null) {
 			try {
-				InvertedIndexBuilder.traverse(indexPath, index);
+				InvertedIndexBuilder.traverse(indexPath, index, threadCount);
 			} catch (IOException e) {
 				//TODO Logger
 				System.err.println("Input path for index could not be read. Check if other threads are accessing it.");

@@ -2,7 +2,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.file.Path;
 import java.util.*;
@@ -15,20 +14,19 @@ import java.util.*;
  */
 public class Query {
 
-
 	private final Map<String, Set<SearchResult>> queryEntries; //TreeMap<String, TreeSet<SearchResult>>
 
 	public Query() {
 		queryEntries = new TreeMap<>();
 	}
 
-	public void addQuery(String word, String fileName, Long partial, Long total) {
-		queryEntries.putIfAbsent(word, new TreeSet<>());
-		queryEntries.get(word).add(new SearchResult(fileName, partial, (double) partial / total));
+	public void addQuery(String searchPhrase, String fileName, Long partial, Long total) {
+		queryEntries.putIfAbsent(searchPhrase, new TreeSet<>());
+		queryEntries.get(searchPhrase).add(new SearchResult(fileName, partial, (double) partial / total));
 	}
 
-	public void addEmptyQuery(String word) {
-		queryEntries.putIfAbsent(word, Collections.emptySet());
+	public void addEmptyQuery(String searchPhrase) {
+		queryEntries.putIfAbsent(searchPhrase, Collections.emptySet());
 	}
 
 	public void queryToJSON(Path output) throws IOException {
@@ -44,8 +42,6 @@ public class Query {
 		private Double score;
 
 		private static String SCORE_FORMAT = "%.8f";
-		private static final String FORMATTED =
-				"{\n\twhere: \"%s\",\n\tcount: %d,\n\tscore: %s\n}"; //Want to use it in a certain context
 
 		public SearchResult(String where, Long count, Double score) {
 			this.where = where;

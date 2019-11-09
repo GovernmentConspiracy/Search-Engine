@@ -1,6 +1,5 @@
 import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
-import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -92,10 +91,10 @@ public class SearchBuilder {
 				Set<String> usedPhrases = new TreeSet<>(); //used to create finalString and stop duplicates
 				Map<String, Long> fileCount = new TreeMap<>(); //Used to merge all files
 				for (String word : TextParser.parse(line)) {
-					String phrase = stemmer.stem(word).toString();
+					word = stemmer.stem(word).toString();
 
-					if (usedPhrases.add(phrase)) {
-						index.getWordFileCount(phrase, exact)
+					if (usedPhrases.add(word)) {
+						index.getWordFileCount(word, exact)
 								.forEach((key, value) ->
 										fileCount.put(key, fileCount.getOrDefault(key, (long) 0) + value));
 					}
@@ -103,11 +102,10 @@ public class SearchBuilder {
 				String lineFinal = String.join(" ", usedPhrases);
 
 				if (!fileCount.isEmpty()) {
-					fileCount.forEach((key, value) -> query.addQuery(
-							lineFinal, key, value, counts.get(key)));
-				} else {
-					if (lineFinal.length() > 0)
-						query.addEmptyQuery(lineFinal);
+					fileCount.forEach((key, value) ->
+							query.addQuery(lineFinal, key, value, counts.get(key)));
+				} else if (lineFinal.length() > 0) {
+					query.addEmptyQuery(lineFinal);
 				}
 			}
 		}
