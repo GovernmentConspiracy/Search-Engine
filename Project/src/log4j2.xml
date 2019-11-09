@@ -16,7 +16,7 @@
 
 	<Loggers>
 		<Root level="ALL">
-			<AppenderRef ref="Console" level="WARN"/>
+			<AppenderRef ref="Console" level="INFO"/>
 			<AppenderRef ref="FileLog" level="ALL"/>
 		</Root>
 	</Loggers>

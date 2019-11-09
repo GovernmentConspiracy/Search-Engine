@@ -100,16 +100,14 @@ public class Driver {
 		if (threadCount <= 0) {
 			threadCount = DEFAULT_THREADS;
 		}
+		WorkQueue queue = new WorkQueue(threadCount);
 
-		System.err.println("Count: " + threadCount);
-
-		log.trace("Thread count = {}", threadCount);
-
+		log.info("Thread count = {}", threadCount);
 		Path indexPath, queryPath;
-		log.trace("Started");
+		log.info("Started");
 		if ((indexPath = command.getPath(PATH_FLAG)) != null) {
 			try {
-				InvertedIndexBuilder.traverse(indexPath, index, threadCount);
+				InvertedIndexBuilder.traverse(indexPath, index, queue);
 			} catch (IOException e) {
 				//TODO Logger
 				System.err.println("Input path for index could not be read. Check if other threads are accessing it.");

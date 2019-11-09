@@ -131,25 +131,20 @@ public class InvertedIndexBuilder {
 		}
 	}
 
-	public static void traverse(Path input, InvertedIndex index, int threads) throws IOException {
-		if (threads <= 1) {
-			traverse(input, index);
-		} else {
-			List<Path> paths = getFiles(input);
-			WorkQueue queue = new WorkQueue(threads);
-			int i = 0;
-			for (Path in : paths) {
-				log.trace("Executing {}...", ++i);
-				queue.execute(new WordIndexingTask(index, in)); //convert to runnable
-			}
+	public static void traverse(Path input, InvertedIndex index, WorkQueue queue) throws IOException {
+		List<Path> paths = getFiles(input);
+		int i = 0;
+		for (Path in : paths) {
+			log.trace("Executing {}...", ++i);
+			queue.execute(new WordIndexingTask(index, in)); //convert to runnable
+		}
 
-			try {
-				log.debug("NOTIFICATION: .finish() called");
-				queue.finish();
-				log.debug("NOTIFICATION: .finish() ended");
-			} catch (InterruptedException e) {
-				log.error("Work did NOT finish.");
-			}
+		try {
+			log.debug("NOTIFICATION: .finish() called");
+			queue.finish();
+			log.debug("NOTIFICATION: .finish() ended");
+		} catch (InterruptedException e) {
+			log.error("Work did NOT finish.");
 		}
 	}
 

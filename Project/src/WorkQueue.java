@@ -1,7 +1,7 @@
+import java.util.LinkedList;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.util.LinkedList;
 
 /**
  * A simple work queue implementation based on the IBM Developer article by
@@ -13,7 +13,7 @@ import java.util.LinkedList;
  */
 public class WorkQueue {
 
-	private volatile boolean waitingShutdown;
+	private volatile boolean waitingFinish;
 	private int pending;
 
 	private static final Logger log = LogManager.getLogger();
@@ -58,7 +58,7 @@ public class WorkQueue {
 		this.workers = new PoolWorker[threads];
 
 		this.shutdown = false;
-		this.waitingShutdown = false;
+		this.waitingFinish = false;
 		pending = 0;
 
 		// start the threads so they are waiting in the background
@@ -77,7 +77,7 @@ public class WorkQueue {
 	 * @param r work request (in the form of a {@link Runnable} object)
 	 */
 	public void execute(Runnable r) {
-		if (!waitingShutdown) {
+		if (!waitingFinish) {
 			synchronized (queue) {
 				queue.addLast(r);
 				queue.notifyAll();
@@ -89,20 +89,20 @@ public class WorkQueue {
 	 * Waits for all pending work to be finished.
 	 */
 	public void finish() throws InterruptedException {
-		waitingShutdown = true;
+		waitingFinish = true;
 
 		synchronized (queue) {
 			queue.notifyAll();
-			log.debug("Called finish... notified all.");
 		}
-
-		while (!queue.isEmpty() || pending > 0) {
-			synchronized (this) {
-				log.trace("finish() waiting at pending = {}.", pending);
-				this.wait();
-				log.trace("finish() woke up with pending = {}.", pending);
+		synchronized (this) {
+			while (!queue.isEmpty() || pending > 0) {
+				log.trace("finish() waiting at pending = {}, queue.size() = {}", pending, queue.size());
+				this.wait(); //TODO FIx
+				log.debug("finish() woke up with pending = {}.", pending);
 			}
 		}
+
+		waitingFinish = false;
 	}
 
 	/**
@@ -110,11 +110,13 @@ public class WorkQueue {
 	 * but threads in-progress will not be interrupted.
 	 */
 	public void shutdown() {
+		// safe to do unsynchronized due to volatile keyword
 		shutdown = true;
-		log.warn("Shutdown has been called.");
+		log.info("Shutting down...");
 		synchronized (queue) {
 			queue.notifyAll();
 		}
+		log.info("WorkQueue has shut down.");
 	}
 
 	/**
@@ -129,15 +131,15 @@ public class WorkQueue {
 
 	public synchronized void increment() {
 		pending++;
-		log.trace("Incremented. pending = {}", pending);
+		log.trace("pending++ == {}", pending);
 	}
 
 	public synchronized void decrement() {
 		pending--;
-		log.trace("Decremented. pending = {}", pending);
+		log.trace("pending-- == {}", pending);
 		if (pending == 0) {
 			this.notifyAll();
-			log.debug("Called notifyAll() at pending = {}", pending);
+			log.debug("Called notifyAll() in decrement(), pending = {}", pending);
 		}
 	}
 
@@ -151,17 +153,19 @@ public class WorkQueue {
 
 		@Override
 		public void run() {
-			Runnable task;
+			Runnable r;
 
-			outer:
 			while (true) {
 				synchronized (queue) {
 					while (queue.isEmpty() && !shutdown) {
-						if (waitingShutdown) {
-							log.trace("Worker terminating.");
-							break outer;
+						if (waitingFinish) {
+							synchronized (this) {
+								this.notifyAll();
+								log.debug("Called this.notifyAll()");
+							}
 						}
 						try {
+							log.debug("Waiting for work");
 							queue.wait();
 						} catch (InterruptedException ex) {
 							log.warn("Warning: Work queue interrupted.");
@@ -172,31 +176,27 @@ public class WorkQueue {
 					// (a) queue has work, or (b) shutdown has been called
 
 					if (shutdown) {
-						log.warn("Worker forcefully terminated. pending = {}", pending);
+						log.info("Worker forcefully terminated.");
 						break;
 					} else {
-						task = queue.removeFirst();
 						increment();
+						r = queue.removeFirst();
+						log.trace("Worker received work.");
 					}
 				}
 
 				try {
-					task.run();
+					log.trace("Running...");
+					r.run();
+					log.trace("Running passed.");
 					decrement();
 				} catch (RuntimeException ex) {
 					// catch runtime exceptions to avoid leaking threads
-					log.warn("Warning: Work queue encountered an exception while running.");
+					log.warn("Warning: Running failed! Work queue encountered an exception while running. {}", ex.toString());
 				}
 			}
 
-			log.trace("Worker at pending = {} ended", pending);
-			if (pending == 0) {
-
-				synchronized (this) {
-					this.notifyAll();
-					log.debug("Called this.notifyAll()");
-				}
-			}
+			log.debug("Worker at pending = {} ended", pending);
 		}
 	}
 }

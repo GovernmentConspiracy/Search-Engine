@@ -111,6 +111,51 @@ public class SearchBuilder {
 		}
 	}
 
+	/**
+	 * A behemoth of a function
+	 * //TODO
+	 *
+	 * @param input
+	 * @param query
+	 * @param index
+	 * @param threads
+	 * @param exact
+	 * @throws IOException
+	 */
+	public static void addQueryPath(Path input, Query query, InvertedIndex index, int threads, boolean exact) throws IOException {
+		if (Files.isDirectory(input)) {
+			throw new IOException("Query Path: Wrong file type");
+		}
+		Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
+		try (
+				BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
+		) {
+			String line;
+			final Map<String, Long> counts = index.getCounts(); //read only
+			while ((line = reader.readLine()) != null) {
+				Set<String> usedPhrases = new TreeSet<>(); //used to create finalString and stop duplicates
+				Map<String, Long> fileCount = new TreeMap<>(); //Used to merge all files
+				for (String word : TextParser.parse(line)) {
+					word = stemmer.stem(word).toString();
+
+					if (usedPhrases.add(word)) {
+						index.getWordFileCount(word, exact)
+								.forEach((key, value) ->
+										fileCount.put(key, fileCount.getOrDefault(key, (long) 0) + value));
+					}
+				}
+				String lineFinal = String.join(" ", usedPhrases);
+
+				if (!fileCount.isEmpty()) {
+					fileCount.forEach((key, value) ->
+							query.addQuery(lineFinal, key, value, counts.get(key)));
+				} else if (lineFinal.length() > 0) {
+					query.addEmptyQuery(lineFinal);
+				}
+			}
+		}
+	}
+
 	public static void queryTraverse(Path input, Query query, InvertedIndex index) throws IOException {
 		List<Path> paths = getFiles(input);
 		for (Path in : paths) {
