@@ -11,7 +11,7 @@ import java.util.*;
  * A query which stores...
  *
  * @author Jason Liang
- * @version v2.0.0
+ * @version v2.0.1
  */
 public class Query {
 

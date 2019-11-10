@@ -1,3 +1,6 @@
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
@@ -8,9 +11,12 @@ import java.util.stream.Collectors;
  * <p>Auxiliary functions includes word counter and JSON writer
  *
  * @author Jason Liang
- * @version v1.3.0
+ * @version v2.0.1
  */
 public class InvertedIndex {
+
+	private static final Logger log = LogManager.getLogger();
+
 	/**
 	 * Nested data structure used to store location of where a word was found.
 	 * Outer map stores (key - value) as (word - file location)
@@ -71,17 +77,19 @@ public class InvertedIndex {
 		try {
 			indexToJSON(output);
 		} catch (IOException e) {
+			log.warn("Could not write JSON object of {}. Reason: {}", this.getClass().getSimpleName(), e.getMessage());
 			return false;
 		}
 		return true;
 	}
 
 	/**
-	 * Gives the source to Query through SearchBuilder
-	 * //TODO
-	 * @param word
-	 * @param exact
-	 * @return
+	 * Generates a specified word count in each file with partial or exact match,
+	 * given whether the boolean flag is {@code true} or {@code true}.
+	 *
+	 * @param word the matched String
+	 * @param exact flag which determines whether to match exact phrases
+	 * @return a map where the file name maps to the word count
 	 */
 	public Map<String, Long> getWordFileCount(String word, boolean exact) {
 		if (exact) {
@@ -91,10 +99,10 @@ public class InvertedIndex {
 	}
 
 	/**
-	 * //TODO
+	 * Generates an exact word count in each file.
 	 *
-	 * @param word
-	 * @return
+	 * @param word the matched String
+	 * @return a map where the file name maps to the word count
 	 */
 	private Map<String, Long> getExactWordFileCount(String word) {
 		if (contains(word)) {
@@ -110,9 +118,10 @@ public class InvertedIndex {
 	}
 
 	/**
-	 * //TODO
-	 * @param word
-	 * @return
+	 * Generates a partial word count in each file.
+	 *
+	 * @param word the matched String
+	 * @return a map where the file name maps to the word count
 	 */
 	private Map<String, Long> getPartialWordFileCount(String word) {
 		if (!indexMap.isEmpty()) {
@@ -159,7 +168,7 @@ public class InvertedIndex {
 		try {
 			countToJSON(output);
 		} catch (IOException e) {
-			//TODO logger
+			log.warn("Could not write JSON object of {}. Reason: {}", this.getClass().getSimpleName(), e.getMessage());
 			return false;
 		}
 		return true;
