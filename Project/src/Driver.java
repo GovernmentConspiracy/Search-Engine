@@ -156,6 +156,8 @@ public class Driver {
 			System.out.println("Ex:\n -path \"project-tests/huckleberry.txt\"\n");
 		}
 
+		queue.shutdown();
+
 		if (command.hasFlag(RESULTS_FLAG)) {
 			Path resultsOutput = command.getPath(RESULTS_FLAG, RESULTS_DEFAULT_PATH);
 			try {

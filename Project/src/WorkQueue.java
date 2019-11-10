@@ -112,11 +112,11 @@ public class WorkQueue {
 	public void shutdown() {
 		// safe to do unsynchronized due to volatile keyword
 		shutdown = true;
-		log.info("Shutting down...");
+		log.debug("Shutting down...");
 		synchronized (queue) {
 			queue.notifyAll();
 		}
-		log.info("WorkQueue has shut down.");
+		log.info("Work queue shutdown");
 	}
 
 	/**
@@ -176,7 +176,7 @@ public class WorkQueue {
 					// (a) queue has work, or (b) shutdown has been called
 
 					if (shutdown) {
-						log.info("Worker forcefully terminated.");
+						log.debug("Worker forcefully terminated.");
 						break;
 					} else {
 						increment();
