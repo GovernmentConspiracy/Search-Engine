@@ -149,7 +149,6 @@ public class InvertedIndexBuilder {
 	}
 
 
-
 	/**
 	 * Returns all paths of {@code Path input} recursively or an empty list if the files could not be generated.
 	 *

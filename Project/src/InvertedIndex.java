@@ -79,6 +79,7 @@ public class InvertedIndex {
 	/**
 	 * Gives the source to Query through SearchBuilder
 	 * //TODO
+	 *
 	 * @param word
 	 * @param exact
 	 * @return
@@ -111,6 +112,7 @@ public class InvertedIndex {
 
 	/**
 	 * //TODO
+	 *
 	 * @param word
 	 * @return
 	 */
@@ -179,7 +181,7 @@ public class InvertedIndex {
 	 * Returns {@code true} if a map paired with key word in
 	 * indexMap contains the string location.
 	 *
-	 * @param word the String key to be tested on indexMap
+	 * @param word     the String key to be tested on indexMap
 	 * @param location the String location to be tested an element in indexMap
 	 * @return {@code true} if the indexMap.get(word) contains the specified location
 	 */
@@ -192,7 +194,7 @@ public class InvertedIndex {
 	 * a map paired with key word in
 	 * indexMap contains the position.
 	 *
-	 * @param word the String key to be tested on indexMap
+	 * @param word     the String key to be tested on indexMap
 	 * @param location the String location to be tested an element in indexMap
 	 * @param position the long position to be tested on a an element of indexMap.get(location)
 	 * @return {@code true} if the indexMap.get(word).get(location) contains the specified position
@@ -227,7 +229,7 @@ public class InvertedIndex {
 	/**
 	 * Returns an unmodifiable set of all positions of a word found in a file location
 	 *
-	 * @param word the String key to retrieve an element of indexMap
+	 * @param word     the String key to retrieve an element of indexMap
 	 * @param location the String location to retrieve an element of indexMap.get(word)
 	 * @return an unmodifiable set of indexMap.get(word).get(location)
 	 */

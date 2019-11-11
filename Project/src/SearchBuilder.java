@@ -76,6 +76,7 @@ public class SearchBuilder {
 	/**
 	 * A behemoth of a function
 	 * //TODO
+	 *
 	 * @param input
 	 * @param query
 	 * @param index
