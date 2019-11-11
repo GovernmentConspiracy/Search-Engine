@@ -15,7 +15,15 @@ import java.time.Instant;
  * @version Fall 2019
  */
 public class Driver {
+	/* -------------- Logger -------------- */
+
+	/**
+	 * The logger of this class
+	 */
 	private static final Logger log = LogManager.getLogger();
+
+	/* -------------- Defaults -------------- */
+
 	/**
 	 * The default index path if no path is provided through command line.
 	 */
@@ -31,11 +39,12 @@ public class Driver {
 	 */
 	private static final Path RESULTS_DEFAULT_PATH = Path.of("results.json");
 
+	/* -------------- Arguments -------------- */
+
 	/**
 	 * The default thread count if no count is specified in the thread flag.
 	 */
 	private static final int DEFAULT_THREADS = 5;
-
 
 	/**
 	 * A string representing the path flag.
@@ -73,6 +82,8 @@ public class Driver {
 	 */
 	private static final String THREAD_FLAG = "-threads";
 
+	/* -------------- Main -------------- */
+
 	/**
 	 * Initializes the classes necessary based on the provided command-line
 	 * arguments. This includes (but is not limited to) how to build or search an
@@ -84,7 +95,7 @@ public class Driver {
 		// store initial start time
 		Instant start = Instant.now();
 
-		/*-----------------Start-----------------*/
+		/* --------------Start -------------- */
 		ArgumentParser command = new ArgumentParser(args);
 		InvertedIndex index = new InvertedIndex();
 		Query query = new Query();
@@ -109,13 +120,11 @@ public class Driver {
 			try {
 				InvertedIndexBuilder.traverse(indexPath, index, queue);
 			} catch (IOException e) {
-				//TODO Logger
-				System.err.println("Input path for index could not be read. Check if other threads are accessing it.");
-				System.err.println(e.getMessage());
+				log.error("Input path for index could not be read. Check if other threads are accessing it.");
 			}
 		} else {
-			System.out.printf("Program arguments %s is required\n", PATH_FLAG);
-			System.out.println("Ex:\n -path \"project-tests/huckleberry.txt\"\n");
+			log.warn("Program arguments {} is required\n", PATH_FLAG);
+			log.info("Ex:\n -path \"project-tests/huckleberry.txt\"\n");
 		}
 
 		if (command.hasFlag(INDEX_FLAG)) {
@@ -123,11 +132,8 @@ public class Driver {
 			try {
 				index.indexToJSON(indexOutput);
 			} catch (IOException e) {
-				//TODO Logger
-				System.err.println("Output path for index could not be written.");
-				System.err.printf("Check if path (%s) is writable (i.e is not a directory)\n", indexOutput);
-				System.err.println(e.getMessage());
-				System.err.println();
+				log.error("Output path for index could not be written.");
+				log.info("Check if path ({}) is writable (i.e is not a directory)\n", indexOutput);
 			}
 		}
 
@@ -136,10 +142,8 @@ public class Driver {
 			try {
 				index.countToJSON(countsOutput);
 			} catch (IOException e) {
-				//TODO Logger
-				System.err.println("Output path for counts could not be written.");
-				System.err.printf("Check if path (%s) is writable (i.e is not a directory)\n", countsOutput);
-				System.err.println(e.getMessage());
+				log.error("Output path for counts could not be written.");
+				log.info("Check if path ({}) is writable (i.e is not a directory)\n", countsOutput);
 			}
 		}
 
@@ -147,13 +151,12 @@ public class Driver {
 			try {
 				SearchBuilder.addQueryPath(queryPath, query, index, queue, command.hasFlag(EXACT_FLAG));
 			} catch (IOException e) {
-				//TODO Logger
-				System.err.println("Input path for index could not be read. Check if this is the correct path type.");
-				System.err.println(e.getMessage());
+				log.error("Input path for index could not be read.");
+				log.info("Check if this is the correct path type.");
 			}
 		} else {
-			System.out.printf("Program arguments %s is required\n", PATH_FLAG);
-			System.out.println("Ex:\n -path \"project-tests/huckleberry.txt\"\n");
+			log.warn("Program arguments {} is required\n", PATH_FLAG);
+			log.info("Ex:\n -path \"project-tests/huckleberry.txt\"\n");
 		}
 
 		queue.shutdown();
@@ -163,19 +166,16 @@ public class Driver {
 			try {
 				query.queryToJSON(resultsOutput);
 			} catch (IOException e) {
-				//TODO Logger
-				System.err.println("Output path for counts could not be written.");
-				System.err.printf("Check if path (%s) is writable (i.e is not a directory)\n", resultsOutput);
-				System.err.println(e.getMessage());
+				log.warn("Output path for counts could not be written.");
+				log.info("Check if path ({}) is writable (i.e is not a directory)\n", resultsOutput);
 			}
 		}
 
-
-		/*-----------------End-----------------*/
+		/* -------------- End -------------- */
 
 		// calculate time elapsed and output
 		Duration elapsed = Duration.between(start, Instant.now());
 		double seconds = (double) elapsed.toMillis() / Duration.ofSeconds(1).toMillis();
-		System.out.printf("Elapsed: %f seconds%n", seconds);
+		log.info("Elapsed: {} seconds\n", seconds);
 	}
 }
