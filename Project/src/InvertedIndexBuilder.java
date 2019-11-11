@@ -25,7 +25,7 @@ public class InvertedIndexBuilder {
 	/**
 	 * Stemmer used in this class.
 	 */
-	private static Stemmer STEMMER = new SnowballStemmer(DEFAULT_LANG);
+	private static final Stemmer STEMMER = new SnowballStemmer(DEFAULT_LANG);
 
 	/**
 	 * An index to store words and the location (both file location and position in file) of where those words were found.
