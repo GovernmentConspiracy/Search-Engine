@@ -250,6 +250,11 @@ public class InvertedIndex {
 		return Collections.emptySet();
 	}
 
+	/**
+	 * //TODO
+	 *
+	 * @param other
+	 */
 	public void addAll(InvertedIndex other) {
 		other.indexMap.forEach((word, wordValue) -> wordValue.forEach((path, pathValue) -> pathValue.forEach(
 				location -> this.indexPut(word, path, location)
