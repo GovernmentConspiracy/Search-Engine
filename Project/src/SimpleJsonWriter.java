@@ -236,6 +236,7 @@ public final class SimpleJsonWriter {
 	 * @param element the element to write
 	 * @param writer  the writer to use
 	 * @param level   the initial indent level
+	 * @param <V>     the element's type
 	 * @throws IOException if file is not found
 	 */
 	private static <V> void asVariable(V element, Writer writer, int level) throws IOException {

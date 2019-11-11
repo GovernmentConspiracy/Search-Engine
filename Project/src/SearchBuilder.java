@@ -1,6 +1,5 @@
 import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
-import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,12 +7,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-//TODO refactor whole builder class to accept Query but not Index
 
 /**
  * A builder class for inverted index and query, where an index stores words and
  * the location (both file location and position in file) of where those words were found
- * and a query...//TODO Write this
+ * and a query stores word cou
  *
  * @author Jason Liang
  * @version v2.0.0
@@ -25,19 +23,28 @@ public class SearchBuilder {
 	private static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
 
 	/**
-	 * An query to store words and the location (both file location and position in file) of where those words were found.
+	 * Stemmer used in this class.
+	 */
+	private static Stemmer STEMMER = new SnowballStemmer(DEFAULT_LANG);
+
+	/**
+	 * An query to store words and the location (both file location and position in file)
+	 * of where those words were found.
 	 */
 	private final Query query;
 
 	/**
-	 * //TODO
+	 * Constructs a Query builder of an existing Query.
 	 *
-	 * @param query
+	 * @param query the query to be set
 	 */
 	public SearchBuilder(Query query) {
 		this.query = query;
 	}
 
+	/**
+	 * Constructs a Query builder of a new Query object.
+	 */
 	public SearchBuilder() {
 		this(new Query());
 	}
@@ -52,10 +59,8 @@ public class SearchBuilder {
 		try {
 			return getFiles(input);
 		} catch (IOException e) {
-			//TODO logger
-			System.err.println(e.getMessage());
+			return Collections.emptyList();
 		}
-		return Collections.emptyList();
 	}
 
 	/**
@@ -70,19 +75,19 @@ public class SearchBuilder {
 	}
 
 	/**
-	 * A behemoth of a function
-	 * //TODO
-	 * @param input
-	 * @param query
-	 * @param index
-	 * @param exact
-	 * @throws IOException
+	 * Generates a search result from the arguments passed into query. When the exact flag
+	 * {@code true}, the search result finds exact word matches, and partial matches when {@code false}.
+	 *
+	 * @param input the search source, stored as a text file
+	 * @param query the query to be stored in
+	 * @param index the index to get word count from
+	 * @param exact the boolean flag for exact matches
+	 * @throws IOException if no such input path exists
 	 */
 	public static void addQueryPath(Path input, Query query, InvertedIndex index, boolean exact) throws IOException {
 		if (Files.isDirectory(input)) {
 			throw new IOException("Query Path: Wrong file type");
 		}
-		Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
 		try (
 				BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
 		) {
@@ -92,7 +97,7 @@ public class SearchBuilder {
 				Set<String> usedPhrases = new TreeSet<>(); //used to create finalString and stop duplicates
 				Map<String, Long> fileCount = new TreeMap<>(); //Used to merge all files
 				for (String word : TextParser.parse(line)) {
-					String phrase = stemmer.stem(word).toString();
+					String phrase = STEMMER.stem(word).toString();
 
 					if (usedPhrases.add(phrase)) {
 						index.getWordFileCount(phrase, exact)
@@ -113,14 +118,29 @@ public class SearchBuilder {
 		}
 	}
 
-	public static void queryTraverse(Path input, Query query, InvertedIndex index) throws IOException {
+	/**
+	 * Generates a search result from the arguments passed into query. When the exact flag
+	 * {@code true}, the search result finds exact word matches, and partial matches when {@code false}.
+	 *
+	 * @param input the search source, stored as a directory
+	 * @param query the query to be stored in
+	 * @param index the index to get word count from
+	 * @param exact the boolean flag for exact matches
+	 * @throws IOException if no such input path exists
+	 */
+	public static void queryTraverse(Path input, Query query, InvertedIndex index, boolean exact) throws IOException {
 		List<Path> paths = getFiles(input);
 		for (Path in : paths) {
-			addQueryPath(in, query, index, true);
+			addQueryPath(in, query, index, exact);
 		}
 	}
 
-	public static void queryToJSON(Path output, Query query) throws IOException {
-		query.queryToJSON(output);
+	/**
+	 * Returns the query of which this search builder is wrapping.
+	 *
+	 * @return this Query
+	 */
+	public Query getQuery() {
+		return query;
 	}
 }

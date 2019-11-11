@@ -15,6 +15,9 @@ import java.util.stream.Collectors;
  */
 public class InvertedIndex {
 
+	/**
+	 * The logger of this class
+	 */
 	private static final Logger log = LogManager.getLogger();
 
 	/**
@@ -31,7 +34,7 @@ public class InvertedIndex {
 	private final TreeMap<String, Long> countMap;
 
 	/**
-	 * Constructs a new empty inverted index and can pass in acceptable file extensions
+	 * Constructs a new empty inverted index.
 	 */
 	public InvertedIndex() {
 		this.indexMap = new TreeMap<>();
@@ -87,7 +90,7 @@ public class InvertedIndex {
 	 * Generates a specified word count in each file with partial or exact match,
 	 * given whether the boolean flag is {@code true} or {@code true}.
 	 *
-	 * @param word the matched String
+	 * @param word  the matched String
 	 * @param exact flag which determines whether to match exact phrases
 	 * @return a map where the file name maps to the word count
 	 */
@@ -188,7 +191,7 @@ public class InvertedIndex {
 	 * Returns {@code true} if a map paired with key word in
 	 * indexMap contains the string location.
 	 *
-	 * @param word the String key to be tested on indexMap
+	 * @param word     the String key to be tested on indexMap
 	 * @param location the String location to be tested an element in indexMap
 	 * @return {@code true} if the indexMap.get(word) contains the specified location
 	 */
@@ -201,7 +204,7 @@ public class InvertedIndex {
 	 * a map paired with key word in
 	 * indexMap contains the position.
 	 *
-	 * @param word the String key to be tested on indexMap
+	 * @param word     the String key to be tested on indexMap
 	 * @param location the String location to be tested an element in indexMap
 	 * @param position the long position to be tested on a an element of indexMap.get(location)
 	 * @return {@code true} if the indexMap.get(word).get(location) contains the specified position
@@ -236,7 +239,7 @@ public class InvertedIndex {
 	/**
 	 * Returns an unmodifiable set of all positions of a word found in a file location
 	 *
-	 * @param word the String key to retrieve an element of indexMap
+	 * @param word     the String key to retrieve an element of indexMap
 	 * @param location the String location to retrieve an element of indexMap.get(word)
 	 * @return an unmodifiable set of indexMap.get(word).get(location)
 	 */

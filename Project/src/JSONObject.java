@@ -8,15 +8,29 @@ import java.io.Writer;
  * This interface is used within SimpleJsonWriter, which calls the toJSONObject() method.
  */
 public interface JSONObject {
-	default String toJSONObjectString(int indent) {
+	/**
+	 * Returns a String representing the JSONObject padded with {@code indent}
+	 * count of tabs
+	 *
+	 * @param level the initial indent level, left padded
+	 * @return a String of the JSONObject
+	 */
+	default String toJSONObjectString(int level) {
 		try {
 			StringWriter writer = new StringWriter();
-			this.toJSONObject(writer, indent);
+			this.toJSONObject(writer, level);
 			return writer.toString();
 		} catch (IOException e) {
 			return null;
 		}
 	}
 
-	void toJSONObject(Writer writer, int indent) throws IOException;
+	/**
+	 * Writes this object as a JSON object.
+	 *
+	 * @param writer the writer to use
+	 * @param level  the initial indent level, left padded
+	 * @throws IOException if file is not found
+	 */
+	void toJSONObject(Writer writer, int level) throws IOException;
 }

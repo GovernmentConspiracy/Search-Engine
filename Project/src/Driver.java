@@ -15,7 +15,15 @@ import java.time.Instant;
  * @version Fall 2019
  */
 public class Driver {
+	/* -------------- Logger -------------- */
+
+	/**
+	 * The logger of this class
+	 */
 	private static final Logger log = LogManager.getLogger();
+
+	/* -------------- Defaults -------------- */
+
 	/**
 	 * The default index path if no path is provided through command line.
 	 */
@@ -30,6 +38,8 @@ public class Driver {
 	 * The default results path if no path is provided through command line.
 	 */
 	private static final Path RESULTS_DEFAULT_PATH = Path.of("results.json");
+
+	/* -------------- Arguments -------------- */
 
 	/**
 	 * A string representing the path flag.
@@ -62,6 +72,8 @@ public class Driver {
 	 */
 	private static final String RESULTS_FLAG = "-results";
 
+	/* -------------- Main -------------- */
+
 	/**
 	 * Initializes the classes necessary based on the provided command-line
 	 * arguments. This includes (but is not limited to) how to build or search an
@@ -73,7 +85,7 @@ public class Driver {
 		// store initial start time
 		Instant start = Instant.now();
 
-		/*-----------------Start-----------------*/
+		/* --------------Start -------------- */
 		ArgumentParser command = new ArgumentParser(args);
 		InvertedIndex index = new InvertedIndex();
 		Query query = new Query();
@@ -133,8 +145,7 @@ public class Driver {
 			}
 		}
 
-
-		/*-----------------End-----------------*/
+		/* -------------- End -------------- */
 
 		// calculate time elapsed and output
 		Duration elapsed = Duration.between(start, Instant.now());

@@ -8,60 +8,115 @@ import java.nio.file.Path;
 import java.util.*;
 
 /**
- * A query which stores...
+ * A query to store phrases and each word count of the phrase of where those words were found.
  *
  * @author Jason Liang
  * @version v2.0.1
  */
 public class Query {
 
-
+	/**
+	 * Nested data structure used to store count of where a word was found.
+	 */
 	private final Map<String, Set<SearchResult>> queryEntries; //TreeMap<String, TreeSet<SearchResult>>
 
+	/**
+	 * Constructs a new empty query.
+	 */
 	public Query() {
 		queryEntries = new TreeMap<>();
 	}
 
-	public void addQuery(String word, String fileName, Long partial, Long total) {
-		queryEntries.putIfAbsent(word, new TreeSet<>());
-		queryEntries.get(word).add(new SearchResult(fileName, partial, (double) partial / total));
+	/**
+	 * Adds a search result to the set mapped to the provided phrase.
+	 *
+	 * @param phrase   The search phrase
+	 * @param pathName The path of where a specified word of the search phrase was found
+	 * @param partial  The word count of the specified word of the search phrase in the path
+	 * @param total    The total word count of the path
+	 */
+	public void addQuery(String phrase, String pathName, Long partial, Long total) {
+		addEmptyQuery(phrase);
+		queryEntries.get(phrase).add(new SearchResult(pathName, partial, (double) partial / total));
 	}
 
-	public void addEmptyQuery(String word) {
-		queryEntries.putIfAbsent(word, Collections.emptySet());
+	/**
+	 * Adds an empty set of search result into the query.
+	 * (Not Collections.emptySet(), so more expensive);
+	 *
+	 * @param phrase The search phrase
+	 */
+	public void addEmptyQuery(String phrase) {
+		queryEntries.putIfAbsent(phrase, new TreeSet<>());
 	}
 
+	/**
+	 * Generates a JSON text file of the search result of words, stored at Path output
+	 *
+	 * @param output The output path to store the JSON object
+	 * @throws IOException if the output file could not be created or written
+	 */
 	public void queryToJSON(Path output) throws IOException {
 		SimpleJsonWriter.asObject(queryEntries, output);
 	}
 
 	/**
-	 * Search results
+	 * A search result to store file location, word count, and word occurrence ratio.
 	 */
 	public static class SearchResult implements Comparable<SearchResult>, JSONObject {
+		/**
+		 * The String representation of a file location of where the word was found.
+		 */
 		private String where;
-		private Long count;
-		private Double score;
 
-		private static String SCORE_FORMAT = "%.8f";
-		private static final String FORMATTED =
-				"{\n\twhere: \"%s\",\n\tcount: %d,\n\tscore: %s\n}"; //Want to use it in a certain context
+		/**
+		 * The number of occurrence of a certain word in a file.
+		 */
+		private long count;
 
-		public SearchResult(String where, Long count, Double score) {
+		/**
+		 * Word occurrence ratio to total word count of a file.
+		 */
+		private double score;
+
+		/**
+		 * Constructs a new SearchResult,
+		 * storing the file location, word count, and score.
+		 *
+		 * @param where String representing the file location
+		 * @param count long representing the word count
+		 * @param score double representing the ratio between count of a particular word and total word count
+		 */
+		public SearchResult(String where, long count, double score) {
 			this.where = where;
 			this.count = count;
 			this.score = score;
 		}
 
+		/**
+		 * Returns the String representation of a file location of where the word was found.
+		 *
+		 * @return String representation of a path
+		 */
 		public String getWhere() {
 			return where;
 		}
 
-		public Long getCount() {
+		/**
+		 * Returns the number of occurrence of a certain word in a file.
+		 *
+		 * @return count of a particular String
+		 */
+		public long getCount() {
 			return count;
 		}
 
-		public Double getScore() {
+		/**
+		 * Returns the ratio between word count of a particular String and total word count
+		 *
+		 * @return (word count) / (total word count)
+		 */
+		public double getScore() {
 			return score;
 		}
 
@@ -82,22 +137,24 @@ public class Query {
 		}
 
 		@Override
-		public void toJSONObject(Writer writer, int indent) throws IOException {
-			SimpleJsonWriter.indent(writer, indent);
+		public void toJSONObject(Writer writer, int level) throws IOException {
+			String scoreFormat = "%.8f";
+
+			SimpleJsonWriter.indent(writer, level);
 			writer.write("{\n");
-			SimpleJsonWriter.indent(writer, indent + 1);
+			SimpleJsonWriter.indent(writer, level + 1);
 			writer.write("\"where\": ");
 			SimpleJsonWriter.quote(where, writer);
 			writer.write(",\n");
-			SimpleJsonWriter.indent(writer, indent + 1);
+			SimpleJsonWriter.indent(writer, level + 1);
 			writer.write("\"count\": ");
-			writer.write(count.toString());
+			writer.write(Long.toString(count));
 			writer.write(",\n");
-			SimpleJsonWriter.indent(writer, indent + 1);
+			SimpleJsonWriter.indent(writer, level + 1);
 			writer.write("\"score\": ");
-			writer.write(String.format(SCORE_FORMAT, score));
+			writer.write(String.format(scoreFormat, score));
 			writer.write('\n');
-			SimpleJsonWriter.indent(writer, indent);
+			SimpleJsonWriter.indent(writer, level);
 			writer.write('}');
 		}
 	}
