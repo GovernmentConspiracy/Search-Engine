@@ -3,6 +3,42 @@ import java.io.Writer;
 import java.nio.file.Path;
 import java.util.*;
 
+/*
+ * TODO
+
+Since the SearchResult data depends on a specific instance of a specific inverted index,
+it should be an inner class inside of inverted index. (Not a static nested class.)
+
+Need to make the SearchResult class mutable. So where you used to store Map<String, Long>
+you are going to store a Map<String (location?), SearchResult> instead and update the count within that object.
+
+SearchResult will still have a where, count, score and get methods. It needs a new method:
+
+private void update(String word) {
+	this.count += indexMap.get(word).get(where).size();
+	this.score = (double) this.count / countMap.get(where);
+}
+
+Combine Query INTO SearchBuilder.
+
+This is SearchBuilder:
+
+private final Map<String, List<InvertedIndex.SearchResult>> queryEntries;
+private final InvertedIndex index;
+
+public void queryToJSON(Path output) throws IOException
+
+public void parseQueries(Path input, boolean exact) throws IOException {
+		open the file, read line by line, and on each line call the other parseQueries
+}
+
+public void parseQueries(String line, boolean exact) {
+	Set<String> usedPhrases = ... filled up by parse and stemming the line
+	String lineFinal = String.join(" ", usedPhrases);
+	queryEntries.put(lineFinal, index.search(usedPhrases, exact));
+}
+ */
+
 /**
  * A query to store phrases and each word count of the phrase of where those words were found.
  *
