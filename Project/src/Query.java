@@ -21,9 +21,9 @@ private void update(String word) {
 
 Combine Query INTO SearchBuilder.
 
-This is SearchBuilder:
+This is SearchBuilder: //non-static
 
-private final Map<String, List<InvertedIndex.SearchResult>> queryEntries;
+private final Map<String, List<InvertedIndex.SearchResult>> queryEntries; //Does expensive sort at the end
 private final InvertedIndex index;
 
 public void queryToJSON(Path output) throws IOException
@@ -95,99 +95,4 @@ public class Query {
 	/**
 	 * A search result to store file location, word count, and word occurrence ratio.
 	 */
-	public static class SearchResult implements Comparable<SearchResult>, JSONObject {
-		/**
-		 * The String representation of a file location of where the word was found.
-		 */
-		private String where;
-
-		/**
-		 * The number of occurrence of a certain word in a file.
-		 */
-		private long count;
-
-		/**
-		 * Word occurrence ratio to total word count of a file.
-		 */
-		private double score;
-
-		/**
-		 * Constructs a new SearchResult,
-		 * storing the file location, word count, and score.
-		 *
-		 * @param where String representing the file location
-		 * @param count long representing the word count
-		 * @param score double representing the ratio between count of a particular word and total word count
-		 */
-		public SearchResult(String where, long count, double score) {
-			this.where = where;
-			this.count = count;
-			this.score = score;
-		}
-
-		/**
-		 * Returns the String representation of a file location of where the word was found.
-		 *
-		 * @return String representation of a path
-		 */
-		public String getWhere() {
-			return where;
-		}
-
-		/**
-		 * Returns the number of occurrence of a certain word in a file.
-		 *
-		 * @return count of a particular String
-		 */
-		public long getCount() {
-			return count;
-		}
-
-		/**
-		 * Returns the ratio between word count of a particular String and total word count
-		 *
-		 * @return (word count) / (total word count)
-		 */
-		public double getScore() {
-			return score;
-		}
-
-		@Override
-		public int compareTo(SearchResult other) {
-			int temp;
-			if ((temp = -Double.compare(this.score, other.score)) == 0) {
-				if ((temp = -Long.compare(this.count, other.count)) == 0) {
-					return this.where.compareToIgnoreCase(other.where);
-				}
-			}
-			return temp;
-		}
-
-		@Override
-		public String toString() {
-			return this.toJSONObjectString(0);
-		}
-
-		@Override
-		public void toJSONObject(Writer writer, int level) throws IOException {
-			String scoreFormat = "%.8f";
-
-			SimpleJsonWriter.indent(writer, level);
-			writer.write("{\n");
-			SimpleJsonWriter.indent(writer, level + 1);
-			writer.write("\"where\": ");
-			SimpleJsonWriter.quote(where, writer);
-			writer.write(",\n");
-			SimpleJsonWriter.indent(writer, level + 1);
-			writer.write("\"count\": ");
-			writer.write(Long.toString(count));
-			writer.write(",\n");
-			SimpleJsonWriter.indent(writer, level + 1);
-			writer.write("\"score\": ");
-			writer.write(String.format(scoreFormat, score));
-			writer.write('\n');
-			SimpleJsonWriter.indent(writer, level);
-			writer.write('}');
-		}
-	}
 }
