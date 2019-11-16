@@ -350,6 +350,18 @@ public class InvertedIndex {
 			SimpleJsonWriter.indent(writer, level);
 			writer.write('}');
 		}
+
+		/* Required if using sets */
+		@Override
+		public boolean equals(Object other) {
+			if (this == other) {
+				return true;
+			}
+			if (other instanceof SearchResult) {
+				return compareTo((SearchResult) other) == 0;
+			}
+			return false;
+		}
 	}
 
 }

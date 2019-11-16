@@ -50,7 +50,7 @@ public class Query {
 	/**
 	 * Nested data structure used to store count of where a word was found.
 	 */
-	private final Map<String, Set<SearchResult>> queryEntries; //TreeMap<String, TreeSet<SearchResult>>
+	private final Map<String, List<InvertedIndex.SearchResult>> queryEntries; //TreeMap<String, TreeSet<SearchResult>>
 
 	/**
 	 * Constructs a new empty query.
@@ -67,10 +67,10 @@ public class Query {
 	 * @param partial  The word count of the specified word of the search phrase in the path
 	 * @param total    The total word count of the path
 	 */
-	public void addQuery(String phrase, String pathName, Long partial, Long total) {
-		addEmptyQuery(phrase);
-		queryEntries.get(phrase).add(new SearchResult(pathName, partial, (double) partial / total));
-	}
+//	public void addQuery(String phrase, String pathName, Long partial, Long total) {
+//		addEmptyQuery(phrase);
+//		queryEntries.get(phrase).add(InvertedIndex.new SearchResult(pathName, partial, (double) partial / total));
+//	}
 
 	/**
 	 * Adds an empty set of search result into the query.
@@ -79,7 +79,7 @@ public class Query {
 	 * @param phrase The search phrase
 	 */
 	public void addEmptyQuery(String phrase) {
-		queryEntries.putIfAbsent(phrase, new TreeSet<>());
+		queryEntries.putIfAbsent(phrase, new ArrayList<>());
 	}
 
 	/**
