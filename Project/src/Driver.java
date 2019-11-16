@@ -15,6 +15,13 @@ import java.time.Instant;
  * @version Fall 2019
  */
 public class Driver {
+	
+	/*
+	 * TODO Last warning on old TODO comments and classpath setup.
+	 * 
+	 * Add this to .classpath: <classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/log4j2"/>
+	 */
+	
 	/* -------------- Logger -------------- */
 
 	/**
