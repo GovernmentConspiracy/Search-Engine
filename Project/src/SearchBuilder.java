@@ -89,7 +89,9 @@ public class SearchBuilder {
 		}
 		String lineFinal = String.join(" ", usedPhrases);
 		//Add synchronized block
-		queryEntries.put(lineFinal, index.search(usedPhrases, exact));
+		if (lineFinal.length() >= 0) { //TODO CHANGE TO >
+			queryEntries.put(lineFinal, index.search(usedPhrases, exact));
+		}
 	}
 
 //TODO Depreciated

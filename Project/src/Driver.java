@@ -140,7 +140,6 @@ public class Driver {
 			Path resultsOutput = command.getPath(RESULTS_FLAG, RESULTS_DEFAULT_PATH);
 			try {
 				search.queryToJSON(resultsOutput);
-				int value = 10 / 0;
 			} catch (IOException e) {
 				log.warn("Output path for counts could not be written.");
 				log.info("Check if path ({}) is writable (i.e is not a directory)\n", resultsOutput);

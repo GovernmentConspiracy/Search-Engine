@@ -274,6 +274,7 @@ public class InvertedIndex {
 		public SearchResult(String word, String where) {
 			this.where = where;
 			this.count = 0;
+			this.score = 0.0;
 			update(word);
 		}
 
