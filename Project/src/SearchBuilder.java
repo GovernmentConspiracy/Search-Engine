@@ -82,12 +82,17 @@ public class SearchBuilder {
 	}
 
 	public void parseQueries(String line, boolean exact) {
-		Set<String> usedPhrases = new TreeSet<String>; // = ... filled up by parse and stemming the line
+		//filled up by parse and stemming the line
+		Set<String> usedPhrases = new TreeSet<>();
+		for (String s : TextParser.parse(line)) {
+			usedPhrases.add(STEMMER.stem(s).toString());
+		}
 		String lineFinal = String.join(" ", usedPhrases);
+		//Add synchronized block
 		queryEntries.put(lineFinal, index.search(usedPhrases, exact));
 	}
 
-	//TODO Depreciated
+//TODO Depreciated
 //	/**
 //	 * Generates a search result from the arguments passed into query. When the exact flag
 //	 * {@code true}, the search result finds exact word matches, and partial matches when {@code false}.
@@ -133,26 +138,32 @@ public class SearchBuilder {
 //	}
 
 
+//TODO DEPRECIATED
+//	/**
+//	 * Generates a search result from the arguments passed into query. When the exact flag
+//	 * {@code true}, the search result finds exact word matches, and partial matches when {@code false}.
+//	 *
+//	 * @param input the search source, stored as a directory
+//	 * @param query the query to be stored in
+//	 * @param index the index to get word count from
+//	 * @param exact the boolean flag for exact matches
+//	 * @throws IOException if no such input path exists
+//	 */
+//	public static void queryTraverse(Path input, Query query, InvertedIndex index, boolean exact) throws IOException {
+//		List<Path> paths = getFiles(input);
+//		for (Path in : paths) {
+//			parseQueries(in, query, index, exact);
+//		}
+//	}
 
 	/**
-	 * Generates a search result from the arguments passed into query. When the exact flag
-	 * {@code true}, the search result finds exact word matches, and partial matches when {@code false}.
+	 * Generates a JSON text file of the search result of words, stored at Path output
 	 *
-	 * @param input the search source, stored as a directory
-	 * @param query the query to be stored in
-	 * @param index the index to get word count from
-	 * @param exact the boolean flag for exact matches
-	 * @throws IOException if no such input path exists
+	 * @param output The output path to store the JSON object
+	 * @throws IOException if the output file could not be created or written
 	 */
-	public static void queryTraverse(Path input, Query query, InvertedIndex index, boolean exact) throws IOException {
-		List<Path> paths = getFiles(input);
-		for (Path in : paths) {
-			parseQueries(in, query, index, exact);
-		}
-	}
-
 	public void queryToJSON(Path output) throws IOException {
-
+		SimpleJsonWriter.asObject(queryEntries, output);
 	}
 
 

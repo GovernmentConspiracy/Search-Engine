@@ -268,6 +268,12 @@ public class InvertedIndex {
 		return Collections.emptySet();
 	}
 
+
+	public List<SearchResult> search(Set<String> usedPhrases, boolean exact) {
+		//TODO complete this function
+		return Collections.emptyList();
+	}
+
 	public class SearchResult implements Comparable<SearchResult>, JSONObject {
 		/**
 		 * The Search phrase
