@@ -17,6 +17,10 @@ import java.util.*;
  * @version v2.0.0
  */
 public class SearchBuilder {
+
+	private final Map<String, List<InvertedIndex.SearchResult>> queryEntries; //Does expensive sort at the end
+
+	private final InvertedIndex index;
 	/**
 	 * Default SnowballStemmer algorithm from OpenNLP.
 	 */
@@ -28,25 +32,13 @@ public class SearchBuilder {
 	private static final Stemmer STEMMER = new SnowballStemmer(DEFAULT_LANG);
 
 	/**
-	 * An query to store words and the location (both file location and position in file)
-	 * of where those words were found.
-	 */
-	private final Query query;
-
-	/**
-	 * Constructs a Query builder of an existing Query.
+	 * Constructs a Search builder of an existing Index.
 	 *
-	 * @param query the query to be set
+	 * @param index the query to be set
 	 */
-	public SearchBuilder(Query query) {
-		this.query = query;
-	}
-
-	/**
-	 * Constructs a Query builder of a new Query object.
-	 */
-	public SearchBuilder() {
-		this(new Query());
+	public SearchBuilder(InvertedIndex index) {
+		this.index = index;
+		queryEntries = new TreeMap<>();
 	}
 
 	/**
@@ -74,17 +66,8 @@ public class SearchBuilder {
 		return TextFileFinder.list(input);
 	}
 
-	/**
-	 * Generates a search result from the arguments passed into query. When the exact flag
-	 * {@code true}, the search result finds exact word matches, and partial matches when {@code false}.
-	 *
-	 * @param input the search source, stored as a text file
-	 * @param query the query to be stored in
-	 * @param index the index to get word count from
-	 * @param exact the boolean flag for exact matches
-	 * @throws IOException if no such input path exists
-	 */
-	public static void addQueryPath(Path input, Query query, InvertedIndex index, boolean exact) throws IOException {
+	//open the file, read line by line, and on each line call the other parseQueries
+	public void parseQueries(Path input, boolean exact) throws IOException {
 		if (Files.isDirectory(input)) {
 			throw new IOException("Query Path: Wrong file type");
 		}
@@ -92,31 +75,64 @@ public class SearchBuilder {
 				BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
 		) {
 			String line;
-			final Map<String, Long> counts = index.getCounts(); //read only
 			while ((line = reader.readLine()) != null) {
-				Set<String> usedPhrases = new TreeSet<>(); //used to create finalString and stop duplicates
-				Map<String, Long> fileCount = new TreeMap<>(); //Used to merge all files
-				for (String word : TextParser.parse(line)) {
-					String phrase = STEMMER.stem(word).toString();
-
-					if (usedPhrases.add(phrase)) {
-						index.getWordFileCount(phrase, exact)
-								.forEach((key, value) ->
-										fileCount.put(key, fileCount.getOrDefault(key, (long) 0) + value));
-					}
-				}
-				String lineFinal = String.join(" ", usedPhrases);
-
-				if (!fileCount.isEmpty()) {
-					fileCount.forEach((key, value) -> query.addQuery(
-							lineFinal, key, value, counts.get(key)));
-				} else {
-					if (lineFinal.length() > 0)
-						query.addEmptyQuery(lineFinal);
-				}
+				parseQueries(line, exact);
 			}
 		}
 	}
+
+	public void parseQueries(String line, boolean exact) {
+		Set<String> usedPhrases = new TreeSet<String>; // = ... filled up by parse and stemming the line
+		String lineFinal = String.join(" ", usedPhrases);
+		queryEntries.put(lineFinal, index.search(usedPhrases, exact));
+	}
+
+	//TODO Depreciated
+//	/**
+//	 * Generates a search result from the arguments passed into query. When the exact flag
+//	 * {@code true}, the search result finds exact word matches, and partial matches when {@code false}.
+//	 *
+//	 * @param input the search source, stored as a text file
+//	 * @param query the query to be stored in
+//	 * @param index the index to get word count from
+//	 * @param exact the boolean flag for exact matches
+//	 * @throws IOException if no such input path exists
+//	 */
+//	public static void parseQueries(Path input, Query query, InvertedIndex index, boolean exact) throws IOException {
+//		if (Files.isDirectory(input)) {
+//			throw new IOException("Query Path: Wrong file type");
+//		}
+//		try (
+//				BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
+//		) {
+//			String line;
+//			final Map<String, Long> counts = index.getCounts(); //read only
+//			while ((line = reader.readLine()) != null) {
+//				Set<String> usedPhrases = new TreeSet<>(); //used to create finalString and stop duplicates
+//				Map<String, Long> fileCount = new TreeMap<>(); //Used to merge all files
+//				for (String word : TextParser.parse(line)) {
+//					String phrase = STEMMER.stem(word).toString();
+//
+//					if (usedPhrases.add(phrase)) {
+//						index.getWordFileCount(phrase, exact)
+//								.forEach((key, value) ->
+//										fileCount.put(key, fileCount.getOrDefault(key, (long) 0) + value));
+//					}
+//				}
+//				String lineFinal = String.join(" ", usedPhrases);
+//
+//				if (!fileCount.isEmpty()) {
+//					fileCount.forEach((key, value) -> query.addQuery(
+//							lineFinal, key, value, counts.get(key)));
+//				} else {
+//					if (lineFinal.length() > 0)
+//						query.addEmptyQuery(lineFinal);
+//				}
+//			}
+//		}
+//	}
+
+
 
 	/**
 	 * Generates a search result from the arguments passed into query. When the exact flag
@@ -131,16 +147,15 @@ public class SearchBuilder {
 	public static void queryTraverse(Path input, Query query, InvertedIndex index, boolean exact) throws IOException {
 		List<Path> paths = getFiles(input);
 		for (Path in : paths) {
-			addQueryPath(in, query, index, exact);
+			parseQueries(in, query, index, exact);
 		}
 	}
 
-	/**
-	 * Returns the query of which this search builder is wrapping.
-	 *
-	 * @return this Query
-	 */
-	public Query getQuery() {
-		return query;
+	public void queryToJSON(Path output) throws IOException {
+
 	}
+
+
+
+
 }

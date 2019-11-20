@@ -125,7 +125,7 @@ public class Driver {
 
 		if ((queryPath = command.getPath(QUERY_FLAG)) != null) {
 			try {
-				SearchBuilder.addQueryPath(queryPath, query, index, command.hasFlag(EXACT_FLAG));
+				SearchBuilder.parseQueries(queryPath, query, index, command.hasFlag(EXACT_FLAG));
 			} catch (IOException e) {
 				log.error("Input path for index could not be read.");
 				log.info("Check if this is the correct path type.");

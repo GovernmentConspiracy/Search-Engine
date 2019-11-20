@@ -95,7 +95,7 @@ public class InvertedIndex {
 	 * @param exact flag which determines whether to match exact phrases
 	 * @return a map where the file name maps to the word count
 	 */
-	public Map<String, Long> getWordFileCount(String word, boolean exact) {
+	public Map<String, SearchResult> getWordFileCount(String word, boolean exact) {
 		if (exact) {
 			return getExactWordFileCount(word);
 		}
@@ -108,13 +108,14 @@ public class InvertedIndex {
 	 * @param word the matched String
 	 * @return a map where the file name maps to the word count
 	 */
-	private Map<String, Long> getExactWordFileCount(String word) {
+	private Map<String, SearchResult> getExactWordFileCount(String word) {
 		if (contains(word)) {
 			return indexMap.get(word).entrySet()
 					.stream()
 					.collect(
 							Collectors.toUnmodifiableMap(
-									Map.Entry::getKey, e -> (long) e.getValue().size()
+									Map.Entry::getKey, //key
+									e -> new SearchResult(e.getKey(), word) //value
 							)
 					);
 		}
@@ -127,7 +128,7 @@ public class InvertedIndex {
 	 * @param word the matched String
 	 * @return a map where the file name maps to the word count
 	 */
-	private Map<String, Long> getPartialWordFileCount(String word) {
+	private Map<String, SearchResult> getPartialWordFileCount(String word) {
 		if (!indexMap.isEmpty()) {
 			return indexMap.entrySet().stream()
 					.filter(e -> e.getKey().startsWith(word))
@@ -135,12 +136,28 @@ public class InvertedIndex {
 					.flatMap(e -> e.entrySet().stream())
 					.collect(
 							Collectors.toUnmodifiableMap(
-									Map.Entry::getKey, e -> (long) e.getValue().size(), Long::sum //resolve duplicates with addition
+									Map.Entry::getKey, //key
+									e -> new SearchResult(e.getKey(), word), //value
+									SearchResult::merge //Resolve duplicates
 							)
 					);
 		}
 		return Collections.emptyMap();
 	}
+//	private Map<String, Long> getPartialWordFileCount(String word) {
+//		if (!indexMap.isEmpty()) {
+//			return indexMap.entrySet().stream()
+//					.filter(e -> e.getKey().startsWith(word))
+//					.map(Map.Entry::getValue)
+//					.flatMap(e -> e.entrySet().stream())
+//					.collect(
+//							Collectors.toUnmodifiableMap(
+//									Map.Entry::getKey, e -> (long) e.getValue().size(), (e, b) -> e + b //resolve duplicates with addition
+//							)
+//					);
+//		}
+//		return Collections.emptyMap();
+//	}
 
 	/**
 	 * Returns an unmodifiable map of the countMap
@@ -253,6 +270,11 @@ public class InvertedIndex {
 
 	public class SearchResult implements Comparable<SearchResult>, JSONObject {
 		/**
+		 * The Search phrase
+		 */
+		private String word;
+
+		/**
 		 * The String representation of a file location of where the word was found.
 		 */
 		private String where;
@@ -272,13 +294,13 @@ public class InvertedIndex {
 		 * storing the file location, word count, and score.
 		 *
 		 * @param where String representing the file location
-		 * @param count long representing the word count
-		 * @param score double representing the ratio between count of a particular word and total word count
+		 * @param word Search result phrase
 		 */
-		public SearchResult(String where, long count, double score) {
+		public SearchResult(String where, String word) {
+			this.word = word;
 			this.where = where;
-			this.count = count;
-			this.score = score;
+			this.count = indexMap.get(word).get(where).size();
+			this.score = (double) this.count / countMap.get(where);
 		}
 
 		/**
@@ -309,19 +331,10 @@ public class InvertedIndex {
 		}
 
 		private void update(String word) {
-			this.count += indexMap.get(word).get(where).size();
-			this.score = (double) this.count / countMap.get(where);
-		}
-
-		@Override
-		public int compareTo(SearchResult other) {
-			int temp;
-			if ((temp = -Double.compare(this.score, other.score)) == 0) {
-				if ((temp = -Long.compare(this.count, other.count)) == 0) {
-					return this.where.compareToIgnoreCase(other.where);
-				}
+			if (!this.word.equalsIgnoreCase(word)) {
+				this.count += indexMap.get(word).get(where).size();
+				this.score = (double) count / countMap.get(where);
 			}
-			return temp;
 		}
 
 		@Override
@@ -361,6 +374,26 @@ public class InvertedIndex {
 				return compareTo((SearchResult) other) == 0;
 			}
 			return false;
+		}
+
+		@Override
+		public int compareTo(SearchResult other) {
+			int temp;
+			if ((temp = -Double.compare(this.score, other.score)) == 0) {
+				if ((temp = -Long.compare(this.count, other.count)) == 0) {
+					return this.where.compareToIgnoreCase(other.where);
+				}
+			}
+			return temp;
+		}
+
+
+		private SearchResult merge(SearchResult other) {
+			if (this.where.equalsIgnoreCase(other.where)) { //Safety if statement
+				this.count += other.count;
+				this.score = (double) this.count / countMap.get(where);
+			}
+			return this;
 		}
 	}
 
