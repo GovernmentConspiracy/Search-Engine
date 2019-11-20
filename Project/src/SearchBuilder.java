@@ -11,7 +11,7 @@ import java.util.*;
 /**
  * A builder class for inverted index and query, where an index stores words and
  * the location (both file location and position in file) of where those words were found
- * and a query stores word cou
+ * and a query stores word count
  *
  * @author Jason Liang
  * @version v2.0.0

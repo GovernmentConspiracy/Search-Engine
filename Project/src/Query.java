@@ -49,7 +49,7 @@ public class Query {
 	/**
 	 * Nested data structure used to store count of where a word was found.
 	 */
-	private final Map<String, List<InvertedIndex.SearchResult>> queryEntries; //TreeMap<String, TreeSet<SearchResult>>
+	private final Map<String, List<InvertedIndex.SearchResult>> queryEntries; //before: TreeMap<String, TreeSet<SearchResult>>
 
 	/**
 	 * Constructs a new empty query.
@@ -58,7 +58,7 @@ public class Query {
 		queryEntries = new TreeMap<>();
 	}
 
-	/**
+	/** //TODO REMOVE
 	 * Adds a search result to the set mapped to the provided phrase.
 	 *
 	 * @param phrase   The search phrase
@@ -71,7 +71,7 @@ public class Query {
 //		queryEntries.get(phrase).add(InvertedIndex.new SearchResult(pathName, partial, (double) partial / total));
 //	}
 
-	/**
+	/** //TODO REMOVE
 	 * Adds an empty set of search result into the query.
 	 * (Not Collections.emptySet(), so more expensive);
 	 *
@@ -91,7 +91,5 @@ public class Query {
 		SimpleJsonWriter.asObject(queryEntries, output);
 	}
 
-	/**
-	 * A search result to store file location, word count, and word occurrence ratio.
-	 */
+
 }

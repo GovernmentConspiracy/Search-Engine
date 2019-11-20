@@ -87,6 +87,19 @@ public class InvertedIndex {
 		return true;
 	}
 
+
+	public List<SearchResult> search(Set<String> phrases, boolean exact) {
+		Map<String, SearchResult> searchResultMap = new TreeMap<>(); //location mapped to Searchresult
+		for (String word : phrases) {
+			for (String location : indexMap.get(word).keySet()) {
+				searchResultMap.getOrDefault(word, new SearchResult(location, word));
+			}
+		}
+
+		//TODO complete this function
+		return Collections.emptyList();
+	}
+
 	/**
 	 * Generates a specified word count in each file with partial or exact match,
 	 * given whether the boolean flag is {@code true} or {@code true}.
@@ -268,12 +281,9 @@ public class InvertedIndex {
 		return Collections.emptySet();
 	}
 
-
-	public List<SearchResult> search(Set<String> usedPhrases, boolean exact) {
-		//TODO complete this function
-		return Collections.emptyList();
-	}
-
+	/**
+	 * A search result to store file location, word count, and word occurrence ratio.
+	 */
 	public class SearchResult implements Comparable<SearchResult>, JSONObject {
 		/**
 		 * The Search phrase
