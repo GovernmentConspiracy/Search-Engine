@@ -100,10 +100,11 @@ public class InvertedIndexBuilder {
 		) {
 			String line;
 			long i = 0;
+			Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
 			String inputString = input.toString();
 			while ((line = reader.readLine()) != null) {
 				for (String word : TextParser.parse(line)) {
-					index.indexPut(STEMMER.stem(word).toString(), inputString, ++i);
+					index.indexPut(stemmer.stem(word).toString(), inputString, ++i);
 				}
 			}
 		}
