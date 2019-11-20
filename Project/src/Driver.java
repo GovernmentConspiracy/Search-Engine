@@ -88,10 +88,11 @@ public class Driver {
 		/* --------------Start -------------- */
 		ArgumentParser command = new ArgumentParser(args);
 		InvertedIndex index = new InvertedIndex();
-		Query query = new Query();
+		SearchBuilder search = new SearchBuilder(index);
 
 		Path indexPath, queryPath;
 
+		log.info(command.toString());
 		if ((indexPath = command.getPath(PATH_FLAG)) != null) {
 			try {
 				InvertedIndexBuilder.traverse(indexPath, index);
@@ -125,7 +126,7 @@ public class Driver {
 
 		if ((queryPath = command.getPath(QUERY_FLAG)) != null) {
 			try {
-				SearchBuilder.parseQueries(queryPath, query, index, command.hasFlag(EXACT_FLAG));
+				search.parseQueries(queryPath, command.hasFlag(EXACT_FLAG));
 			} catch (IOException e) {
 				log.error("Input path for index could not be read.");
 				log.info("Check if this is the correct path type.");
@@ -138,12 +139,14 @@ public class Driver {
 		if (command.hasFlag(RESULTS_FLAG)) {
 			Path resultsOutput = command.getPath(RESULTS_FLAG, RESULTS_DEFAULT_PATH);
 			try {
-				query.queryToJSON(resultsOutput);
+				search.queryToJSON(resultsOutput);
+				int value = 10 / 0;
 			} catch (IOException e) {
 				log.warn("Output path for counts could not be written.");
 				log.info("Check if path ({}) is writable (i.e is not a directory)\n", resultsOutput);
 			}
 		}
+
 
 		/* -------------- End -------------- */
 

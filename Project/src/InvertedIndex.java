@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -88,89 +90,46 @@ public class InvertedIndex {
 	}
 
 
+	/**
+	 * TODO optimize to not search through whole stream when using exact search
+	 *
+	 * @param phrases
+	 * @param exact
+	 * @return
+	 */
 	public List<SearchResult> search(Set<String> phrases, boolean exact) {
-		Map<String, SearchResult> searchResultMap = new TreeMap<>(); //location mapped to Searchresult
-		for (String word : phrases) {
-			for (String location : indexMap.get(word).keySet()) {
-				searchResultMap.getOrDefault(word, new SearchResult(location, word));
-			}
-		}
+		Map<String, SearchResult> searchResultMap = new TreeMap<>(); //location mapped to SearchResult
+		BiPredicate<String, String> exactCondition = exact ? String::equals : String::startsWith;
 
-		//TODO complete this function
-		return Collections.emptyList();
-	}
+		for (String search : phrases) {
+			indexMap.entrySet().stream()
+					.filter(e -> exactCondition.test(e.getKey(), search))
+					.forEach(
+							wordComp -> {
+								String word = wordComp.getKey();
 
-	/**
-	 * Generates a specified word count in each file with partial or exact match,
-	 * given whether the boolean flag is {@code true} or {@code true}.
-	 *
-	 * @param word  the matched String
-	 * @param exact flag which determines whether to match exact phrases
-	 * @return a map where the file name maps to the word count
-	 */
-	public Map<String, SearchResult> getWordFileCount(String word, boolean exact) {
-		if (exact) {
-			return getExactWordFileCount(word);
-		}
-		return getPartialWordFileCount(word);
-	}
+								if (word.length() > 0) {
+									wordComp.getValue().forEach(
+											(location, sizeComp) -> {
+												if (!searchResultMap.containsKey(location)) {
+													searchResultMap.put(
+															location, new SearchResult(word, location)
+													);
+												} else {
+													searchResultMap.get(location).update(word);
+												}
+											}
+									);
+								}
 
-	/**
-	 * Generates an exact word count in each file.
-	 *
-	 * @param word the matched String
-	 * @return a map where the file name maps to the word count
-	 */
-	private Map<String, SearchResult> getExactWordFileCount(String word) {
-		if (contains(word)) {
-			return indexMap.get(word).entrySet()
-					.stream()
-					.collect(
-							Collectors.toUnmodifiableMap(
-									Map.Entry::getKey, //key
-									e -> new SearchResult(e.getKey(), word) //value
-							)
+							}
 					);
 		}
-		return Collections.emptyMap();
-	}
 
-	/**
-	 * Generates a partial word count in each file.
-	 *
-	 * @param word the matched String
-	 * @return a map where the file name maps to the word count
-	 */
-	private Map<String, SearchResult> getPartialWordFileCount(String word) {
-		if (!indexMap.isEmpty()) {
-			return indexMap.entrySet().stream()
-					.filter(e -> e.getKey().startsWith(word))
-					.map(Map.Entry::getValue)
-					.flatMap(e -> e.entrySet().stream())
-					.collect(
-							Collectors.toUnmodifiableMap(
-									Map.Entry::getKey, //key
-									e -> new SearchResult(e.getKey(), word), //value
-									SearchResult::merge //Resolve duplicates
-							)
-					);
-		}
-		return Collections.emptyMap();
+		ArrayList<SearchResult> results = new ArrayList<>(searchResultMap.values());
+		Collections.sort(results);
+		return results;
 	}
-//	private Map<String, Long> getPartialWordFileCount(String word) {
-//		if (!indexMap.isEmpty()) {
-//			return indexMap.entrySet().stream()
-//					.filter(e -> e.getKey().startsWith(word))
-//					.map(Map.Entry::getValue)
-//					.flatMap(e -> e.entrySet().stream())
-//					.collect(
-//							Collectors.toUnmodifiableMap(
-//									Map.Entry::getKey, e -> (long) e.getValue().size(), (e, b) -> e + b //resolve duplicates with addition
-//							)
-//					);
-//		}
-//		return Collections.emptyMap();
-//	}
 
 	/**
 	 * Returns an unmodifiable map of the countMap
@@ -310,13 +269,12 @@ public class InvertedIndex {
 		 * storing the file location, word count, and score.
 		 *
 		 * @param where String representing the file location
-		 * @param word Search result phrase
+		 * @param word  Search result phrase
 		 */
-		public SearchResult(String where, String word) {
-			this.word = word;
+		public SearchResult(String word, String where) {
 			this.where = where;
-			this.count = indexMap.get(word).get(where).size();
-			this.score = (double) this.count / countMap.get(where);
+			this.count = 0;
+			update(word);
 		}
 
 		/**
@@ -347,7 +305,7 @@ public class InvertedIndex {
 		}
 
 		private void update(String word) {
-			if (!this.word.equalsIgnoreCase(word)) {
+			if (contains(word, where)) {
 				this.count += indexMap.get(word).get(where).size();
 				this.score = (double) count / countMap.get(where);
 			}
@@ -357,6 +315,28 @@ public class InvertedIndex {
 		public String toString() {
 			return this.toJSONObjectString(0);
 		}
+
+//		@Override
+//		public void toJSONObject(Writer writer, int level) throws IOException {
+//			String scoreFormat = "%.8f";
+//
+//			SimpleJsonWriter.indent(writer, level);
+//			writer.write("{\n");
+//			SimpleJsonWriter.indent(writer, level + 1);
+//			writer.write("\"where\": ");
+//			SimpleJsonWriter.quote(where, writer);
+//			writer.write(",\n");
+//			SimpleJsonWriter.indent(writer, level + 1);
+//			writer.write("\"count\": ");
+//			writer.write(Long.toString(count));
+//			writer.write(",\n");
+//			SimpleJsonWriter.indent(writer, level + 1);
+//			writer.write("\"score\": ");
+//			writer.write(String.format(scoreFormat, score));
+//			writer.write('\n');
+//			SimpleJsonWriter.indent(writer, level);
+//			writer.write('}');
+//		}
 
 		@Override
 		public void toJSONObject(Writer writer, int level) throws IOException {
