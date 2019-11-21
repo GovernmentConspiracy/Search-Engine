@@ -1,3 +1,6 @@
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -19,6 +22,10 @@ import java.util.*;
  * @version Fall 2019
  */
 public final class SimpleJsonWriter {
+	/**
+	 * The logger of this class
+	 */
+	private static final Logger log = LogManager.getLogger();
 
 	/**
 	 * Do not instantiate.
@@ -73,8 +80,7 @@ public final class SimpleJsonWriter {
 			asArray(elements, writer, 0);
 			return writer.toString();
 		} catch (IOException e) {
-			//TODO logger
-//            System.out.println("Could not generate a String");
+			log.warn("Could not write JSON array");
 			return null;
 		}
 	}
@@ -137,7 +143,7 @@ public final class SimpleJsonWriter {
 			asObject(elements, writer, 0);
 			return writer.toString();
 		} catch (IOException e) {
-			//TODO logger
+			log.warn("Could not write JSON object");
 			return null;
 		}
 	}
