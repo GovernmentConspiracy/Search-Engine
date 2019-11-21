@@ -14,7 +14,7 @@ import java.util.List;
  * the location (both file location and position in file) of where those words were found.
  *
  * @author Jason Liang
- * @version v2.0.1
+ * @version v2.1.0
  */
 public class InvertedIndexBuilder {
 	/**

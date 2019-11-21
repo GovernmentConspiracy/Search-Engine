@@ -12,7 +12,7 @@ import java.util.function.BiPredicate;
  * <p>Auxiliary functions includes word counter and JSON writer
  *
  * @author Jason Liang
- * @version v2.0.1
+ * @version v2.1.0
  */
 public class InvertedIndex {
 
