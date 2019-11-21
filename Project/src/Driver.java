@@ -92,7 +92,7 @@ public class Driver {
 
 		Path indexPath, queryPath;
 
-		log.info(command.toString());
+		log.debug(command.toString());
 		if ((indexPath = command.getPath(PATH_FLAG)) != null) {
 			try {
 				InvertedIndexBuilder.traverse(indexPath, index);

@@ -7,7 +7,7 @@ import java.io.Writer;
  * <p>
  * This interface is used within SimpleJsonWriter, which calls the toJSONObject() method.
  */
-public interface JSONObject {
+interface JSONObject {
 	/**
 	 * Returns a String representing the JSONObject padded with {@code indent}
 	 * count of tabs

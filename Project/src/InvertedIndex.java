@@ -6,8 +6,6 @@ import java.io.Writer;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.BiPredicate;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * An index to store words and the location (both file location and position in file) of where those words were found.
@@ -19,7 +17,7 @@ import java.util.stream.Collectors;
 public class InvertedIndex {
 
 	/**
-	 * The logger of this class
+	 * The logger of this class.
 	 */
 	private static final Logger log = LogManager.getLogger();
 
@@ -91,37 +89,35 @@ public class InvertedIndex {
 
 
 	/**
-	 * TODO optimize to not search through whole stream when using exact search
+	 * Returns a sorted list of SearchResults which match the inverted index.
+	 * If exact is {@code true}, the list will contain only exact matches instead
+	 * of partial.
 	 *
-	 * @param phrases
-	 * @param exact
-	 * @return
+	 * @param phrases a unique cleaned and stemmed set of search phrases
+	 * @param exact   a flag to turn on exact matches
+	 * @return a sorted list of SearchResults
 	 */
 	public List<SearchResult> search(Set<String> phrases, boolean exact) {
-		Map<String, SearchResult> searchResultMap = new TreeMap<>(); //location mapped to SearchResult
-		BiPredicate<String, String> exactCondition = exact ? String::equals : String::startsWith;
+		Map<String, SearchResult> searchResultMap = new TreeMap<>(); //location - SearchResult pair
+		BiPredicate<String, String> condition = exact ? String::equals : String::startsWith;
 
 		for (String search : phrases) {
 			indexMap.entrySet().stream()
-					.filter(e -> exactCondition.test(e.getKey(), search))
+					.filter(e -> condition.test(e.getKey(), search))
 					.forEach(
 							wordComp -> {
 								String word = wordComp.getKey();
-
-								if (word.length() > 0) {
-									wordComp.getValue().forEach(
-											(location, sizeComp) -> {
-												if (!searchResultMap.containsKey(location)) {
-													searchResultMap.put(
-															location, new SearchResult(word, location)
-													);
-												} else {
-													searchResultMap.get(location).update(word);
-												}
+								wordComp.getValue().forEach(
+										(location, sizeComp) -> {
+											if (!searchResultMap.containsKey(location)) {
+												searchResultMap.put(
+														location, new SearchResult(word, location)
+												);
+											} else {
+												searchResultMap.get(location).update(word);
 											}
-									);
-								}
-
+										}
+								);
 							}
 					);
 		}
@@ -242,17 +238,18 @@ public class InvertedIndex {
 
 	/**
 	 * A search result to store file location, word count, and word occurrence ratio.
+	 * It is unique to only one location.
 	 */
 	public class SearchResult implements Comparable<SearchResult>, JSONObject {
 		/**
-		 * The Search phrase
+		 * A set of existing words already in this SearchResult
 		 */
-		private String word;
+		private final Set<String> existingWords;
 
 		/**
 		 * The String representation of a file location of where the word was found.
 		 */
-		private String where;
+		private final String where;
 
 		/**
 		 * The number of occurrence of a certain word in a file.
@@ -271,7 +268,8 @@ public class InvertedIndex {
 		 * @param where String representing the file location
 		 * @param word  Search result phrase
 		 */
-		public SearchResult(String word, String where) {
+		SearchResult(String word, String where) {
+			existingWords = new HashSet<>();
 			this.where = where;
 			this.count = 0;
 			this.score = 0.0;
@@ -305,10 +303,17 @@ public class InvertedIndex {
 			return score;
 		}
 
+		/**
+		 * Updates this SearchResult if the word never existed before.
+		 *
+		 * @param word the word to be added to this search result.
+		 */
 		private void update(String word) {
 			if (contains(word, where)) {
-				this.count += indexMap.get(word).get(where).size();
-				this.score = (double) count / countMap.get(where);
+				if (existingWords.add(word)) {
+					this.count += indexMap.get(word).get(where).size();
+					this.score = (double) count / countMap.get(where);
+				}
 			}
 		}
 
@@ -316,28 +321,6 @@ public class InvertedIndex {
 		public String toString() {
 			return this.toJSONObjectString(0);
 		}
-
-//		@Override
-//		public void toJSONObject(Writer writer, int level) throws IOException {
-//			String scoreFormat = "%.8f";
-//
-//			SimpleJsonWriter.indent(writer, level);
-//			writer.write("{\n");
-//			SimpleJsonWriter.indent(writer, level + 1);
-//			writer.write("\"where\": ");
-//			SimpleJsonWriter.quote(where, writer);
-//			writer.write(",\n");
-//			SimpleJsonWriter.indent(writer, level + 1);
-//			writer.write("\"count\": ");
-//			writer.write(Long.toString(count));
-//			writer.write(",\n");
-//			SimpleJsonWriter.indent(writer, level + 1);
-//			writer.write("\"score\": ");
-//			writer.write(String.format(scoreFormat, score));
-//			writer.write('\n');
-//			SimpleJsonWriter.indent(writer, level);
-//			writer.write('}');
-//		}
 
 		@Override
 		public void toJSONObject(Writer writer, int level) throws IOException {
@@ -382,15 +365,6 @@ public class InvertedIndex {
 				}
 			}
 			return temp;
-		}
-
-
-		private SearchResult merge(SearchResult other) {
-			if (this.where.equalsIgnoreCase(other.where)) { //Safety if statement
-				this.count += other.count;
-				this.score = (double) this.count / countMap.get(where);
-			}
-			return this;
 		}
 	}
 
