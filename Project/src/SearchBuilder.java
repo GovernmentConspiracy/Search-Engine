@@ -105,32 +105,29 @@ public class SearchBuilder {
 		SimpleJsonWriter.asObject(queryEntries, output);
 	}
 
-	private static class CountTask implements Runnable {
-		private final InvertedIndex index;
-		private final Map<String, Long> fileCount;
-		private final String word;
-		private final boolean exact;
+	private class ParseTask implements Runnable {
+		private String query;
+		private boolean exact;
 
-
-		public CountTask(InvertedIndex index, Map<String, Long> fileCount, String word, boolean exact) {
-			this.index = index;
-			this.fileCount = fileCount;
-			this.word = word;
+		public ParseTask(String query, boolean exact) {
+			this.query = query;
 			this.exact = exact;
 		}
 
 		@Override
 		public void run() {
-
-			Map<String, Long> tempCount = index.getWordFileCount(word, exact);
-			synchronized (fileCount) {
-				log.trace("Adding tempCount into fileCount...");
-				//expensive in memory
-				tempCount.forEach((key, value) ->
-						fileCount.put(key, fileCount.getOrDefault(key, (long) 0) + value));
-				log.trace("Added tempCount into fileCount!");
+			Set<String> usedPhrases = new TreeSet<>();
+			for (String s : TextParser.parse(query)) {
+				usedPhrases.add(STEMMER.stem(s).toString());
 			}
+			String lineFinal = String.join(" ", usedPhrases);
 
+			if (lineFinal.length() > 0) {
+				List<InvertedIndex.SearchResult> temp = index.search(usedPhrases, exact);
+				synchronized (queryEntries) {
+					queryEntries.put(lineFinal, temp);
+				}
+			}
 		}
 	}
 }
