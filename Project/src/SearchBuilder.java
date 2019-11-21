@@ -19,10 +19,6 @@ import java.util.*;
  * @version v2.1.0
  */
 public class SearchBuilder {
-	/**
-	 * //TODO
-	 */
-	private static final Logger log = LogManager.getLogger();
 
 	/**
 	 * A nested data structure which stores search queries mapped to the search results.
