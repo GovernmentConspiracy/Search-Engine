@@ -32,6 +32,9 @@ public class SearchBuilder {
 	 */
 	private static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
 
+	/*
+	 * TODO Create 1 stemmer per line to make project 3 less painful
+	 */
 	/**
 	 * Stemmer used in this class.
 	 */
@@ -86,6 +89,25 @@ public class SearchBuilder {
 		if (lineFinal.length() > 0) {
 			queryEntries.put(lineFinal, index.search(usedPhrases, exact));
 		}
+
+		/* TODO
+		Set<String> usedPhrases = new TreeSet<>();
+		for (String s : TextParser.parse(query)) {
+			usedPhrases.add(STEMMER.stem(s).toString());
+		}
+		
+		if (usedPhrases.isEmpty()) {
+			return;
+		}
+
+		String lineFinal = String.join(" ", usedPhrases);
+		
+		if (queryEntries.containsKey(lineFinal)) {
+			return;
+		}
+					
+		queryEntries.put(lineFinal, index.search(usedPhrases, exact));
+		*/
 	}
 
 	/**

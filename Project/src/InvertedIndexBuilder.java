@@ -22,6 +22,9 @@ public class InvertedIndexBuilder {
 	 */
 	private static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
 
+	/*
+	 * TODO One per file
+	 */
 	/**
 	 * Stemmer used in this class.
 	 */
