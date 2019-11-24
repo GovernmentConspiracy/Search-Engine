@@ -98,10 +98,18 @@ public class InvertedIndex {
 	 * @return a sorted list of SearchResults
 	 */
 	public List<SearchResult> search(Set<String> phrases, boolean exact) {
-		Map<String, SearchResult> searchResultMap = new TreeMap<>(); //location - SearchResult pair
+		Map<String, SearchResult> searchResultMap = new TreeMap<>(); //location - SearchResult pair // TODO HashMap!
 		BiPredicate<String, String> condition = exact ? String::equals : String::startsWith;
 
 		for (String search : phrases) {
+			/*
+			 * TODO We still have a linear search here, through the keys... depending on the type of search
+			 * we can optimize this
+			 * 
+			 * if its exact you only need to do if indexMap.containsKey(search)
+			 * 
+			 * Streams do not love mutable stuff. We are mutating the map and eventually the list.
+			 */
 			indexMap.entrySet().stream()
 					.filter(e -> condition.test(e.getKey(), search))
 					.forEach(
@@ -121,7 +129,35 @@ public class InvertedIndex {
 							}
 					);
 		}
+		
+		/*
+		 * TODO 
 
+		exact search:
+		for each query
+			if the query is a key
+				do stuff
+
+		partial search:
+		for each query
+			loop only the keys we need...
+			use tailMap(query) and break when no longer starts with
+			https://github.com/usf-cs212-fall2019/lectures/blob/master/Data%20Structures/src/FindDemo.java#L146-L163
+				do stuff
+				
+		private void searchHelper that does stuff
+		itneracting with the map
+		
+		for each location... 
+			if the location is in our map
+				get the result and update
+			else
+				create a new search result
+				add the result to the map
+				add the same result to the list
+		 */
+
+		// TODO Can avoid this copy step
 		ArrayList<SearchResult> results = new ArrayList<>(searchResultMap.values());
 		Collections.sort(results);
 		return results;
@@ -244,7 +280,7 @@ public class InvertedIndex {
 		/**
 		 * A set of existing words already in this SearchResult
 		 */
-		private final Set<String> existingWords;
+		private final Set<String> existingWords; // TODO Since you are taking in a set to search, can remove the logic associated with this
 
 		/**
 		 * The String representation of a file location of where the word was found.
@@ -268,7 +304,7 @@ public class InvertedIndex {
 		 * @param where String representing the file location
 		 * @param word  Search result phrase
 		 */
-		SearchResult(String word, String where) {
+		public SearchResult(String word, String where) {
 			existingWords = new HashSet<>();
 			this.where = where;
 			this.count = 0;
@@ -309,7 +345,7 @@ public class InvertedIndex {
 		 * @param word the word to be added to this search result.
 		 */
 		private void update(String word) {
-			if (contains(word, where)) {
+			if (contains(word, where)) { // TODO Remove
 				if (existingWords.add(word)) {
 					this.count += indexMap.get(word).get(where).size();
 					this.score = (double) count / countMap.get(where);
