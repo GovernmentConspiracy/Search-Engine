@@ -98,6 +98,7 @@ public class InvertedIndex {
 	 */
 	public List<SearchResult> search(Set<String> phrases, boolean exact) {
 		Map<String, SearchResult> searchResultMap = new HashMap<>();
+
 		if (exact) {
 			searchExactHelper(phrases, searchResultMap);
 		} else {
@@ -110,26 +111,47 @@ public class InvertedIndex {
 		return results;
 	}
 
+	/**
+	 * Populates a map of SearchResults of searchPhrases which gets exact matches
+	 * from the inverted index.
+	 *
+	 * @param phrases         a unique cleaned and stemmed set of search phrases
+	 * @param searchResultMap the location-SearchResult map to be populated
+	 */
 	private void searchExactHelper(Set<String> phrases, Map<String, SearchResult> searchResultMap) {
 		for (String searchPhrase : phrases) {
 			if (contains(searchPhrase)) {
-				searchInputHelper(searchResultMap, searchPhrase);
+				searchInputHelper(searchPhrase, searchResultMap);
 			}
 		}
 	}
 
+	/**
+	 * Populates a map of SearchResults of searchPhrases which gets partial matches
+	 * from the inverted index.
+	 *
+	 * @param phrases         a unique cleaned and stemmed set of search phrases
+	 * @param searchResultMap the location-SearchResult map to be populated
+	 */
 	private void searchPartialHelper(Set<String> phrases, Map<String, SearchResult> searchResultMap) {
 		for (String searchPhrase : phrases) {
-			for (String partialPhrase : indexMap.tailMap(searchPhrase).keySet()) {
-				if (!partialPhrase.startsWith(searchPhrase)) {
+			for (String matchedPhrase : indexMap.tailMap(searchPhrase).keySet()) {
+				if (!matchedPhrase.startsWith(searchPhrase)) {
 					break;
 				}
-				searchInputHelper(searchResultMap, partialPhrase);
+				searchInputHelper(matchedPhrase, searchResultMap);
 			}
 		}
 	}
 
-	private void searchInputHelper(Map<String, SearchResult> searchResultMap, String match) {
+	/**
+	 * Populates a map of SearchResults with a word match
+	 * from the inverted index, either partial or exact.
+	 *
+	 * @param match           a unique cleaned and stemmed search phrase
+	 * @param searchResultMap the location-SearchResult map to be populated
+	 */
+	private void searchInputHelper(String match, Map<String, SearchResult> searchResultMap) {
 		for (String location : indexMap.get(match).keySet()) {
 			if (!searchResultMap.containsKey(location)) {
 				searchResultMap.put(location, new SearchResult(match, location));
@@ -253,10 +275,6 @@ public class InvertedIndex {
 	 * It is unique to only one location.
 	 */
 	public class SearchResult implements Comparable<SearchResult>, JSONObject {
-		/**
-		 * A set of existing words already in this SearchResult
-		 */
-		private final Set<String> existingWords; // TODO Since you are taking in a set to search, can remove the logic associated with this
 
 		/**
 		 * The String representation of a file location of where the word was found.
@@ -281,7 +299,6 @@ public class InvertedIndex {
 		 * @param word  Search result phrase
 		 */
 		public SearchResult(String word, String where) {
-			existingWords = new HashSet<>();
 			this.where = where;
 			this.count = 0;
 			this.score = 0.0;
@@ -321,12 +338,8 @@ public class InvertedIndex {
 		 * @param word the word to be added to this search result.
 		 */
 		private void update(String word) {
-			if (contains(word, where)) { // TODO Remove
-				if (existingWords.add(word)) {
-					this.count += indexMap.get(word).get(where).size();
-					this.score = (double) count / countMap.get(where);
-				}
-			}
+			this.count += indexMap.get(word).get(where).size();
+			this.score = (double) count / countMap.get(where);
 		}
 
 		@Override
