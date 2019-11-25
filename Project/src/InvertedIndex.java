@@ -86,7 +86,6 @@ public class InvertedIndex {
 		return true;
 	}
 
-
 	/**
 	 * Returns a sorted list of SearchResults which match the inverted index.
 	 * If exact is {@code true}, the list will contain only exact matches instead
@@ -98,15 +97,12 @@ public class InvertedIndex {
 	 */
 	public List<SearchResult> search(Set<String> phrases, boolean exact) {
 		Map<String, SearchResult> searchResultMap = new HashMap<>();
-
+		ArrayList<SearchResult> results = new ArrayList<>();
 		if (exact) {
-			searchExactHelper(phrases, searchResultMap);
+			searchExactHelper(phrases, searchResultMap, results);
 		} else {
-			searchPartialHelper(phrases, searchResultMap);
+			searchPartialHelper(phrases, searchResultMap, results);
 		}
-
-		//TODO how to avoid copy step
-		ArrayList<SearchResult> results = new ArrayList<>(searchResultMap.values());
 		Collections.sort(results);
 		return results;
 	}
@@ -117,11 +113,12 @@ public class InvertedIndex {
 	 *
 	 * @param phrases         a unique cleaned and stemmed set of search phrases
 	 * @param searchResultMap the location-SearchResult map to be populated
+	 * @param results         a list of results to return
 	 */
-	private void searchExactHelper(Set<String> phrases, Map<String, SearchResult> searchResultMap) {
+	private void searchExactHelper(Set<String> phrases, Map<String, SearchResult> searchResultMap, ArrayList<SearchResult> results) {
 		for (String searchPhrase : phrases) {
 			if (contains(searchPhrase)) {
-				searchInputHelper(searchPhrase, searchResultMap);
+				searchInputHelper(searchPhrase, searchResultMap, results);
 			}
 		}
 	}
@@ -132,14 +129,15 @@ public class InvertedIndex {
 	 *
 	 * @param phrases         a unique cleaned and stemmed set of search phrases
 	 * @param searchResultMap the location-SearchResult map to be populated
+	 * @param results         a list of results to return
 	 */
-	private void searchPartialHelper(Set<String> phrases, Map<String, SearchResult> searchResultMap) {
+	private void searchPartialHelper(Set<String> phrases, Map<String, SearchResult> searchResultMap, ArrayList<SearchResult> results) {
 		for (String searchPhrase : phrases) {
 			for (String matchedPhrase : indexMap.tailMap(searchPhrase).keySet()) {
 				if (!matchedPhrase.startsWith(searchPhrase)) {
 					break;
 				}
-				searchInputHelper(matchedPhrase, searchResultMap);
+				searchInputHelper(matchedPhrase, searchResultMap, results);
 			}
 		}
 	}
@@ -150,11 +148,14 @@ public class InvertedIndex {
 	 *
 	 * @param match           a unique cleaned and stemmed search phrase
 	 * @param searchResultMap the location-SearchResult map to be populated
+	 * @param results         a list of results to return
 	 */
-	private void searchInputHelper(String match, Map<String, SearchResult> searchResultMap) {
+	private void searchInputHelper(String match, Map<String, SearchResult> searchResultMap, ArrayList<SearchResult> results) {
 		for (String location : indexMap.get(match).keySet()) {
 			if (!searchResultMap.containsKey(location)) {
-				searchResultMap.put(location, new SearchResult(match, location));
+				SearchResult res = new SearchResult(match, location);
+				results.add(res);
+				searchResultMap.put(location, res);
 			} else {
 				searchResultMap.get(location).update(match);
 			}
