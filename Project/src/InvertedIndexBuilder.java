@@ -22,14 +22,6 @@ public class InvertedIndexBuilder {
 	 */
 	private static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
 
-	/*
-	 * TODO One per file
-	 */
-	/**
-	 * Stemmer used in this class.
-	 */
-	private static final Stemmer STEMMER = new SnowballStemmer(DEFAULT_LANG);
-
 	/**
 	 * An index to store words and the location (both file location and position in file) of where those words were found.
 	 */
@@ -93,6 +85,7 @@ public class InvertedIndexBuilder {
 	 * @throws IOException if the files could not be inserted
 	 */
 	public static void addFile(Path input, InvertedIndex index) throws IOException {
+		Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
 		try (
 				BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
 		) {
@@ -101,7 +94,7 @@ public class InvertedIndexBuilder {
 			String inputString = input.toString();
 			while ((line = reader.readLine()) != null) {
 				for (String word : TextParser.parse(line)) {
-					index.indexPut(STEMMER.stem(word).toString(), inputString, ++i);
+					index.indexPut(stemmer.stem(word).toString(), inputString, ++i);
 				}
 			}
 		}

@@ -32,14 +32,6 @@ public class SearchBuilder {
 	 */
 	private static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
 
-	/*
-	 * TODO Create 1 stemmer per line to make project 3 less painful
-	 */
-	/**
-	 * Stemmer used in this class.
-	 */
-	private static final Stemmer STEMMER = new SnowballStemmer(DEFAULT_LANG);
-
 	/**
 	 * Constructs a Search builder of an existing Index.
 	 *
@@ -79,35 +71,18 @@ public class SearchBuilder {
 	 * @param exact a flag to turn on exact matches
 	 */
 	public void parseQueries(String query, boolean exact) {
+		Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
 		Set<String> usedPhrases = new TreeSet<>();
 		for (String s : TextParser.parse(query)) {
-			usedPhrases.add(STEMMER.stem(s).toString());
+			usedPhrases.add(stemmer.stem(s).toString());
 		}
 
-		String lineFinal = String.join(" ", usedPhrases);
-		//Add synchronized block
-		if (lineFinal.length() > 0) {
-			queryEntries.put(lineFinal, index.search(usedPhrases, exact));
+		if (!usedPhrases.isEmpty()) {
+			String lineFinal = String.join(" ", usedPhrases);
+			if (!queryEntries.containsKey(lineFinal)) {
+				queryEntries.put(lineFinal, index.search(usedPhrases, exact));
+			}
 		}
-
-		/* TODO
-		Set<String> usedPhrases = new TreeSet<>();
-		for (String s : TextParser.parse(query)) {
-			usedPhrases.add(STEMMER.stem(s).toString());
-		}
-		
-		if (usedPhrases.isEmpty()) {
-			return;
-		}
-
-		String lineFinal = String.join(" ", usedPhrases);
-		
-		if (queryEntries.containsKey(lineFinal)) {
-			return;
-		}
-					
-		queryEntries.put(lineFinal, index.search(usedPhrases, exact));
-		*/
 	}
 
 	/**

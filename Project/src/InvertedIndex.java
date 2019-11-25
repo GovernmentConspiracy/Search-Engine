@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.function.BiPredicate;
 
 /**
  * An index to store words and the location (both file location and position in file) of where those words were found.
@@ -98,69 +97,46 @@ public class InvertedIndex {
 	 * @return a sorted list of SearchResults
 	 */
 	public List<SearchResult> search(Set<String> phrases, boolean exact) {
-		Map<String, SearchResult> searchResultMap = new TreeMap<>(); //location - SearchResult pair // TODO HashMap!
-		BiPredicate<String, String> condition = exact ? String::equals : String::startsWith;
-
-		for (String search : phrases) {
-			/*
-			 * TODO We still have a linear search here, through the keys... depending on the type of search
-			 * we can optimize this
-			 * 
-			 * if its exact you only need to do if indexMap.containsKey(search)
-			 * 
-			 * Streams do not love mutable stuff. We are mutating the map and eventually the list.
-			 */
-			indexMap.entrySet().stream()
-					.filter(e -> condition.test(e.getKey(), search))
-					.forEach(
-							wordComp -> {
-								String word = wordComp.getKey();
-								wordComp.getValue().forEach(
-										(location, sizeComp) -> {
-											if (!searchResultMap.containsKey(location)) {
-												searchResultMap.put(
-														location, new SearchResult(word, location)
-												);
-											} else {
-												searchResultMap.get(location).update(word);
-											}
-										}
-								);
-							}
-					);
+		Map<String, SearchResult> searchResultMap = new HashMap<>();
+		if (exact) {
+			searchExactHelper(phrases, searchResultMap);
+		} else {
+			searchPartialHelper(phrases, searchResultMap);
 		}
-		
-		/*
-		 * TODO 
 
-		exact search:
-		for each query
-			if the query is a key
-				do stuff
-
-		partial search:
-		for each query
-			loop only the keys we need...
-			use tailMap(query) and break when no longer starts with
-			https://github.com/usf-cs212-fall2019/lectures/blob/master/Data%20Structures/src/FindDemo.java#L146-L163
-				do stuff
-				
-		private void searchHelper that does stuff
-		itneracting with the map
-		
-		for each location... 
-			if the location is in our map
-				get the result and update
-			else
-				create a new search result
-				add the result to the map
-				add the same result to the list
-		 */
-
-		// TODO Can avoid this copy step
+		//TODO how to avoid copy step
 		ArrayList<SearchResult> results = new ArrayList<>(searchResultMap.values());
 		Collections.sort(results);
 		return results;
+	}
+
+	private void searchExactHelper(Set<String> phrases, Map<String, SearchResult> searchResultMap) {
+		for (String searchPhrase : phrases) {
+			if (contains(searchPhrase)) {
+				searchInputHelper(searchResultMap, searchPhrase);
+			}
+		}
+	}
+
+	private void searchPartialHelper(Set<String> phrases, Map<String, SearchResult> searchResultMap) {
+		for (String searchPhrase : phrases) {
+			for (String partialPhrase : indexMap.tailMap(searchPhrase).keySet()) {
+				if (!partialPhrase.startsWith(searchPhrase)) {
+					break;
+				}
+				searchInputHelper(searchResultMap, partialPhrase);
+			}
+		}
+	}
+
+	private void searchInputHelper(Map<String, SearchResult> searchResultMap, String match) {
+		for (String location : indexMap.get(match).keySet()) {
+			if (!searchResultMap.containsKey(location)) {
+				searchResultMap.put(location, new SearchResult(match, location));
+			} else {
+				searchResultMap.get(location).update(match);
+			}
+		}
 	}
 
 	/**
