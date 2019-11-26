@@ -202,11 +202,12 @@ public class InvertedIndexBuilder {
 			} catch (IOException e) {
 				log.warn(e.getMessage());
 			}
+
+			log.trace("Adding tempIndex into index...");
 			synchronized (index) {
-				log.trace("Adding tempIndex into index...");
 				index.addAll(tempIndex); //Expensive in memory
-				log.trace("Added tempIndex into index!");
 			}
+			log.trace("Added tempIndex into index!");
 		}
 	}
 }

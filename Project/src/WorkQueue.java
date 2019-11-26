@@ -97,7 +97,7 @@ public class WorkQueue {
 		synchronized (this) {
 			while (!queue.isEmpty() || pending > 0) {
 				log.trace("finish() waiting at pending = {}, queue.size() = {}", pending, queue.size());
-				this.wait(); //TODO FIx
+				this.wait();
 				log.debug("finish() woke up with pending = {}.", pending);
 			}
 		}

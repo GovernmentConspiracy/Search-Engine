@@ -39,12 +39,12 @@ public class Driver {
 	 */
 	private static final Path RESULTS_DEFAULT_PATH = Path.of("results.json");
 
-	/* -------------- Arguments -------------- */
-
 	/**
 	 * The default thread count if no count is specified in the thread flag.
 	 */
 	private static final int DEFAULT_THREADS = 5;
+
+	/* -------------- Arguments -------------- */
 
 	/**
 	 * A string representing the path flag.
