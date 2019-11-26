@@ -41,9 +41,12 @@ public class InvertedIndexBuilder {
 	}
 
 	/**
-	 * Constructs an InvertedIndex builder with a new index
+	 * Constructs an InvertedIndex builder with a new thread safe index if
+	 * isConcurrent is {@code true}, or a normal index otherwise.
+	 *
+	 * @param isConcurrent if {@code true}, c
 	 */
-	public InvertedIndexBuilder() {
+	public InvertedIndexBuilder(boolean isConcurrent) {
 		this(new InvertedIndex());
 	}
 
@@ -131,7 +134,7 @@ public class InvertedIndexBuilder {
 		}
 	}
 
-	public static void traverse(Path input, InvertedIndex index, WorkQueue queue) throws IOException {
+	public static void traverse(Path input, ConcurrentInvertedIndex index, WorkQueue queue) throws IOException {
 		List<Path> paths = getFiles(input);
 		int i = 0;
 		for (Path in : paths) {
@@ -185,10 +188,10 @@ public class InvertedIndexBuilder {
 	}
 
 	private static class IndexingTask implements Runnable {
-		private final InvertedIndex index;
+		private final ConcurrentInvertedIndex index;
 		private final Path path;
 
-		public IndexingTask(InvertedIndex index, Path path) {
+		public IndexingTask(ConcurrentInvertedIndex index, Path path) {
 			this.index = index;
 			this.path = path;
 		}
@@ -201,10 +204,7 @@ public class InvertedIndexBuilder {
 			} catch (IOException e) {
 				log.warn(e.getMessage());
 			}
-
-			synchronized (index) {
-				index.addAll(tempIndex); //Expensive in memory
-			}
+			index.addAll(tempIndex); //Expensive in memory
 			log.debug("Added tempIndex into index!");
 		}
 	}

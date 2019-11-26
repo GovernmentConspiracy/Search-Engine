@@ -78,27 +78,23 @@ public class SearchBuilder {
 	 * @throws IOException if the input file is a directory or could not be opened
 	 */
 	public void parseQueries(Path input, boolean exact, WorkQueue queue) throws IOException {
-		if (queue.size() <= 1) {
-			parseQueries(input, exact);
-		} else {
-			if (Files.isDirectory(input)) {
-				throw new IOException("Query Path: Wrong file type");
+		if (Files.isDirectory(input)) {
+			throw new IOException("Query Path: Wrong file type");
+		}
+		try (
+				BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
+		) {
+			String line;
+			while ((line = reader.readLine()) != null) {
+				queue.execute(new ParseQueryTask(line, exact));
 			}
-			try (
-					BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
-			) {
-				String line;
-				while ((line = reader.readLine()) != null) {
-					queue.execute(new ParseQueryTask(line, exact));
-				}
 
-				try {
-					log.debug("NOTIFICATION: .finish() called");
-					queue.finish();
-					log.debug("NOTIFICATION: .finish() ended");
-				} catch (InterruptedException e) {
-					log.error("Work did NOT finish.");
-				}
+			try {
+				log.debug("NOTIFICATION: .finish() called");
+				queue.finish();
+				log.debug("NOTIFICATION: .finish() ended");
+			} catch (InterruptedException e) {
+				log.error("Work did NOT finish.");
 			}
 		}
 	}
