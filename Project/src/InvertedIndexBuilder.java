@@ -27,11 +27,6 @@ public class InvertedIndexBuilder {
 	private static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
 
 	/**
-	 * Stemmer used in this class.
-	 */
-	private static final Stemmer STEMMER = new SnowballStemmer(DEFAULT_LANG);
-
-	/**
 	 * An index to store words and the location (both file location and position in file) of where those words were found.
 	 */
 	private final InvertedIndex index;

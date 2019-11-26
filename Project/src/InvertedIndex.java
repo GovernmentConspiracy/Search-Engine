@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.function.BiPredicate;
 
 /**
  * An index to store words and the location (both file location and position in file) of where those words were found.
@@ -97,33 +96,70 @@ public class InvertedIndex {
 	 * @return a sorted list of SearchResults
 	 */
 	public List<SearchResult> search(Set<String> phrases, boolean exact) {
-		Map<String, SearchResult> searchResultMap = new TreeMap<>(); //location - SearchResult pair
-		BiPredicate<String, String> condition = exact ? String::equals : String::startsWith;
-
-		for (String search : phrases) {
-			indexMap.entrySet().stream()
-					.filter(e -> condition.test(e.getKey(), search))
-					.forEach(
-							wordComp -> {
-								String word = wordComp.getKey();
-								wordComp.getValue().forEach(
-										(location, sizeComp) -> {
-											if (!searchResultMap.containsKey(location)) {
-												searchResultMap.put(
-														location, new SearchResult(word, location)
-												);
-											} else {
-												searchResultMap.get(location).update(word);
-											}
-										}
-								);
-							}
-					);
+		Map<String, SearchResult> searchResultMap = new HashMap<>();
+		ArrayList<SearchResult> results = new ArrayList<>();
+		if (exact) {
+			searchExactHelper(phrases, searchResultMap, results);
+		} else {
+			searchPartialHelper(phrases, searchResultMap, results);
 		}
-
-		ArrayList<SearchResult> results = new ArrayList<>(searchResultMap.values());
 		Collections.sort(results);
 		return results;
+	}
+
+	/**
+	 * Populates a map of SearchResults of searchPhrases which gets exact matches
+	 * from the inverted index.
+	 *
+	 * @param phrases         a unique cleaned and stemmed set of search phrases
+	 * @param searchResultMap the location-SearchResult map to be populated
+	 * @param results         a list of results to return
+	 */
+	private void searchExactHelper(Set<String> phrases, Map<String, SearchResult> searchResultMap, ArrayList<SearchResult> results) {
+		for (String searchPhrase : phrases) {
+			if (contains(searchPhrase)) {
+				searchInputHelper(searchPhrase, searchResultMap, results);
+			}
+		}
+	}
+
+	/**
+	 * Populates a map of SearchResults of searchPhrases which gets partial matches
+	 * from the inverted index.
+	 *
+	 * @param phrases         a unique cleaned and stemmed set of search phrases
+	 * @param searchResultMap the location-SearchResult map to be populated
+	 * @param results         a list of results to return
+	 */
+	private void searchPartialHelper(Set<String> phrases, Map<String, SearchResult> searchResultMap, ArrayList<SearchResult> results) {
+		for (String searchPhrase : phrases) {
+			for (String matchedPhrase : indexMap.tailMap(searchPhrase).keySet()) {
+				if (!matchedPhrase.startsWith(searchPhrase)) {
+					break;
+				}
+				searchInputHelper(matchedPhrase, searchResultMap, results);
+			}
+		}
+	}
+
+	/**
+	 * Populates a map of SearchResults with a word match
+	 * from the inverted index, either partial or exact.
+	 *
+	 * @param match           a unique cleaned and stemmed search phrase
+	 * @param searchResultMap the location-SearchResult map to be populated
+	 * @param results         a list of results to return
+	 */
+	private void searchInputHelper(String match, Map<String, SearchResult> searchResultMap, ArrayList<SearchResult> results) {
+		for (String location : indexMap.get(match).keySet()) {
+			if (!searchResultMap.containsKey(location)) {
+				SearchResult res = new SearchResult(match, location);
+				results.add(res);
+				searchResultMap.put(location, res);
+			} else {
+				searchResultMap.get(location).update(match);
+			}
+		}
 	}
 
 	/**
@@ -240,10 +276,6 @@ public class InvertedIndex {
 	 * It is unique to only one location.
 	 */
 	public class SearchResult implements Comparable<SearchResult>, JSONObject {
-		/**
-		 * A set of existing words already in this SearchResult
-		 */
-		private final Set<String> existingWords;
 
 		/**
 		 * The String representation of a file location of where the word was found.
@@ -267,8 +299,7 @@ public class InvertedIndex {
 		 * @param where String representing the file location
 		 * @param word  Search result phrase
 		 */
-		SearchResult(String word, String where) {
-			existingWords = new HashSet<>();
+		public SearchResult(String word, String where) {
 			this.where = where;
 			this.count = 0;
 			this.score = 0.0;
@@ -308,12 +339,8 @@ public class InvertedIndex {
 		 * @param word the word to be added to this search result.
 		 */
 		private void update(String word) {
-			if (contains(word, where)) {
-				if (existingWords.add(word)) {
-					this.count += indexMap.get(word).get(where).size();
-					this.score = (double) count / countMap.get(where);
-				}
-			}
+			this.count += indexMap.get(word).get(where).size();
+			this.score = (double) count / countMap.get(where);
 		}
 
 		@Override
