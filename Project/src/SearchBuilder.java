@@ -152,40 +152,40 @@ public class SearchBuilder {
 				usedPhrases.add(stemmer.stem(s).toString());
 			}
 
-			if (!usedPhrases.isEmpty()) {
+			if (usedPhrases.isEmpty()) {
 				return;
 			}
 
 			String lineFinal = String.join(" ", usedPhrases);
 			boolean run;
 			//Version 1.
-			synchronized (queryEntries) {
-				if (run = !queryEntries.containsKey(lineFinal)) {
-					queryEntries.put(lineFinal, null); //Reserves so no need to overwrite
-				}
-			}
-
-			if (run) {
-				List<InvertedIndex.SearchResult> temp = index.search(usedPhrases, exact);
-				//Must synchronized... (i.e. if load factor hits limit and resizes)
-				synchronized (queryEntries) {
-					queryEntries.put(lineFinal, temp);
-				}
-				log.debug("Added {}. to queryEntries", lineFinal);
-			}
-
-			//Version 2.
-//			List<InvertedIndex.SearchResult> singleEntryPoint = null;
 //			synchronized (queryEntries) {
 //				if (run = !queryEntries.containsKey(lineFinal)) {
-//					queryEntries.put(lineFinal, singleEntryPoint = new ArrayList<>()); //Reserves so no need to overwrite
+//					queryEntries.put(lineFinal, null); //Reserves so no need to overwrite
 //				}
 //			}
 //
 //			if (run) {
-//				singleEntryPoint.addAll(index.search(usedPhrases, exact));
+//				List<InvertedIndex.SearchResult> temp = index.search(usedPhrases, exact);
+//				//Must synchronized... (i.e. if load factor hits limit and resizes)
+//				synchronized (queryEntries) {
+//					queryEntries.put(lineFinal, temp);
+//				}
 //				log.debug("Added {}. to queryEntries", lineFinal);
 //			}
+
+			//Version 2.
+			List<InvertedIndex.SearchResult> singleEntryPoint = null;
+			synchronized (queryEntries) {
+				if (run = !queryEntries.containsKey(lineFinal)) {
+					queryEntries.put(lineFinal, singleEntryPoint = new ArrayList<>()); //Reserves so no need to overwrite
+				}
+			}
+
+			if (run) {
+				singleEntryPoint.addAll(index.search(usedPhrases, exact));
+				log.debug("Added {}. to queryEntries", lineFinal);
+			}
 		}
 	}
 }
