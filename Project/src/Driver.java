@@ -107,10 +107,11 @@ public class Driver {
 			} catch (NumberFormatException e) {
 				threadCount = DEFAULT_THREADS;
 			}
+			if (threadCount <= 0) {
+				threadCount = DEFAULT_THREADS;
+			}
 		}
-		if (threadCount <= 0) {
-			threadCount = DEFAULT_THREADS;
-		}
+
 		WorkQueue queue = new WorkQueue(threadCount);
 
 		log.info("Thread count = {}", threadCount);
@@ -151,7 +152,7 @@ public class Driver {
 
 		if ((queryPath = command.getPath(QUERY_FLAG)) != null) {
 			try {
-				search.parseQueries(queryPath, command.hasFlag(EXACT_FLAG));
+				search.parseQueries(queryPath, command.hasFlag(EXACT_FLAG), queue);
 			} catch (IOException e) {
 				log.error("Input path for index could not be read.");
 				log.info("Check if this is the correct path type.");

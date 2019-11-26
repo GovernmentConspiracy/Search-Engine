@@ -158,9 +158,10 @@ public class SearchBuilder {
 
 			String lineFinal = String.join(" ", usedPhrases);
 			boolean run;
+			//Version 1.
 			synchronized (queryEntries) {
 				if (run = !queryEntries.containsKey(lineFinal)) {
-					queryEntries.put(lineFinal, null); //Janky method of securing queryEntries
+					queryEntries.put(lineFinal, null); //Reserves so no need to overwrite
 				}
 			}
 
@@ -173,6 +174,18 @@ public class SearchBuilder {
 				log.debug("Added {}. to queryEntries", lineFinal);
 			}
 
+			//Version 2.
+//			List<InvertedIndex.SearchResult> singleEntryPoint = null;
+//			synchronized (queryEntries) {
+//				if (run = !queryEntries.containsKey(lineFinal)) {
+//					queryEntries.put(lineFinal, singleEntryPoint = new ArrayList<>()); //Reserves so no need to overwrite
+//				}
+//			}
+//
+//			if (run) {
+//				singleEntryPoint.addAll(index.search(usedPhrases, exact));
+//				log.debug("Added {}. to queryEntries", lineFinal);
+//			}
 		}
 	}
 }

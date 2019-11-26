@@ -197,17 +197,15 @@ public class InvertedIndexBuilder {
 		public void run() {
 			InvertedIndex tempIndex = new InvertedIndex();
 			try {
-				log.trace("Adding file");
 				addFile(path, tempIndex);
 			} catch (IOException e) {
 				log.warn(e.getMessage());
 			}
 
-			log.trace("Adding tempIndex into index...");
 			synchronized (index) {
 				index.addAll(tempIndex); //Expensive in memory
 			}
-			log.trace("Added tempIndex into index!");
+			log.debug("Added tempIndex into index!");
 		}
 	}
 }
