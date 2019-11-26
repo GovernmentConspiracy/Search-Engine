@@ -109,9 +109,10 @@ public class SearchBuilder {
 
 		@Override
 		public void run() {
+			Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
 			Set<String> usedPhrases = new TreeSet<>();
 			for (String s : TextParser.parse(query)) {
-				usedPhrases.add(STEMMER.stem(s).toString());
+				usedPhrases.add(stemmer.stem(s).toString());
 			}
 			String lineFinal = String.join(" ", usedPhrases);
 
