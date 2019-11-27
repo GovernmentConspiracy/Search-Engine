@@ -160,12 +160,12 @@ public class SearchBuilder {
 		/**
 		 * A String of search phrases separated by a space
 		 */
-		private String query;
+		private final String query;
 
 		/**
 		 * A boolean flag which determines whether to turn on exact matches
 		 */
-		private boolean exact;
+		private final boolean exact;
 
 		/**
 		 * Constructs a new ParseQueryTask runnable to add

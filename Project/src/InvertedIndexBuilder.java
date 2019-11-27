@@ -207,7 +207,7 @@ public class InvertedIndexBuilder {
 		 * a non-directory file into the index.
 		 *
 		 * @param index the thread-safe index to be edited
-		 * @param path the path to be added into InvertedIndex
+		 * @param path  the path to be added into InvertedIndex
 		 */
 		public IndexingTask(ConcurrentInvertedIndex index, Path path) {
 			this.index = index;

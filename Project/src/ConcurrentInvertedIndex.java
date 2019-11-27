@@ -12,7 +12,7 @@ public class ConcurrentInvertedIndex extends InvertedIndex {
 	/**
 	 * Read/write lock for concurrent operations.
 	 */
-	SimpleReadWriteLock lock;
+	private final SimpleReadWriteLock lock;
 
 	/**
 	 * Constructs a new empty thread-safe inverted index.

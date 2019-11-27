@@ -46,7 +46,7 @@ public class WorkQueue {
 	/**
 	 * The default number of threads to use when not specified.
 	 */
-	public static final int DEFAULT = 5;
+	private static final int DEFAULT = 5;
 
 	/**
 	 * Starts a work queue with the default number of threads.
@@ -63,7 +63,7 @@ public class WorkQueue {
 	 * @param threads number of worker threads; should be greater than 1
 	 */
 	public WorkQueue(int threads) {
-		this.queue = new LinkedList<Runnable>();
+		this.queue = new LinkedList<>();
 		this.workers = new PoolWorker[threads];
 
 		this.shutdown = false;
@@ -142,7 +142,7 @@ public class WorkQueue {
 	/**
 	 * Increases pending by one. Synchronized by this object.
 	 */
-	public synchronized void increment() {
+	private synchronized void increment() {
 		pending++;
 		log.trace("pending++ == {}", pending);
 	}
@@ -150,7 +150,7 @@ public class WorkQueue {
 	/**
 	 * Decreases pending by one. Synchronized by this object.
 	 */
-	public synchronized void decrement() {
+	private synchronized void decrement() {
 		pending--;
 		log.trace("pending-- == {}", pending);
 		if (pending == 0) {

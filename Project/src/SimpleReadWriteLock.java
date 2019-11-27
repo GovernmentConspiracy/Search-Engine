@@ -22,12 +22,12 @@ public class SimpleReadWriteLock {
 	/**
 	 * int values representing the single active writer
 	 */
-	private static int WRITING_STATE = -1;
+	private static final int WRITING_STATE = -1;
 
 	/**
 	 * int values representing the dormant state
 	 */
-	private static int DORMANT_STATE = 0; //READING_STATE is any value above DORMANT_STATE
+	private static final int DORMANT_STATE = 0; //READING_STATE is any value above DORMANT_STATE
 
 	/**
 	 * The lock used for reading.
