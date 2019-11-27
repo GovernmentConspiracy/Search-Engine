@@ -14,7 +14,7 @@ import java.util.*;
  * and a query stores word count
  *
  * @author Jason Liang
- * @version v2.1.0
+ * @version v2.3.0
  */
 public class SearchBuilder {
 	/**
