@@ -20,9 +20,14 @@ public class SimpleReadWriteLock {
 	private static final Logger log = LogManager.getLogger();
 
 	/**
-	 * int values representing the single active writer and dormant state
+	 * int values representing the single active writer
 	 */
-	private static int WRITING_STATE = -1, DORMANT_STATE = 0; //READING_STATE is any value above DORMANT_STATE
+	private static int WRITING_STATE = -1;
+
+	/**
+	 * int values representing the dormant state
+	 */
+	private static int DORMANT_STATE = 0; //READING_STATE is any value above DORMANT_STATE
 
 	/**
 	 * The lock used for reading.
@@ -43,6 +48,9 @@ public class SimpleReadWriteLock {
 	 */
 	private int lockState;
 
+	/**
+	 * A simple lock of this class. Used for changing lockState.
+	 */
 	private final Object lock;
 
 	/**
@@ -92,14 +100,31 @@ public class SimpleReadWriteLock {
 		return other != null && other.getId() == Thread.currentThread().getId();
 	}
 
+	/**
+	 * Returns {@code true} if the lockState is dormant.
+	 *
+	 * @return returns {@code true} if the lockState is dormant.
+	 */
 	public boolean isDormant() {
 		return lockState == DORMANT_STATE;
 	}
 
+	/**
+	 * Returns {@code true} if the lockState is writing.
+	 * Note: There can only be one writer.
+	 *
+	 * @return returns {@code true} if the lockState is writing.
+	 */
 	public boolean isWriting() {
 		return lockState == WRITING_STATE;
 	}
 
+	/**
+	 * Returns {@code true} if the lockState is reading.
+	 * Note: There can be multiple readers.
+	 *
+	 * @return returns {@code true} if the lockState is reading.
+	 */
 	public boolean isReading() {
 		return lockState > DORMANT_STATE;
 	}
@@ -151,6 +176,9 @@ public class SimpleReadWriteLock {
 	 * Used to maintain exclusive write operations.
 	 */
 	private class WriteLock implements SimpleLock {
+		/**
+		 * A parameter to keep track if the correct thread calls unlock().
+		 */
 		private Thread targetedThread = null; //Must sync write
 
 		/**

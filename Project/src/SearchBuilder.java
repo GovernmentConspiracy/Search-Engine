@@ -144,7 +144,7 @@ public class SearchBuilder {
 	}
 
 	/**
-	 * Generates a JSON text file of the search result of words, stored at Path output
+	 * Generates a JSON text file of the search result of words, stored at Path output.
 	 *
 	 * @param output The output path to store the JSON object
 	 * @throws IOException if the output file could not be created or written
@@ -153,10 +153,27 @@ public class SearchBuilder {
 		SimpleJsonWriter.asObject(queryEntries, output);
 	}
 
+	/**
+	 * A Runnable for adding to queryEntries.
+	 */
 	private class ParseQueryTask implements Runnable {
+		/**
+		 * A String of search phrases separated by a space
+		 */
 		private String query;
+
+		/**
+		 * A boolean flag which determines whether to turn on exact matches
+		 */
 		private boolean exact;
 
+		/**
+		 * Constructs a new ParseQueryTask runnable to add
+		 * a query string and its SearchResults into queryEntries.
+		 *
+		 * @param query a String of search phrases
+		 * @param exact a flag to turn on exact matches
+		 */
 		public ParseQueryTask(String query, boolean exact) {
 			this.query = query;
 			this.exact = exact;
@@ -176,32 +193,19 @@ public class SearchBuilder {
 
 			String lineFinal = String.join(" ", usedPhrases);
 			boolean run;
-			//Version 1.
-//			synchronized (queryEntries) {
-//				if (run = !queryEntries.containsKey(lineFinal)) {
-//					queryEntries.put(lineFinal, null); //Reserves so no need to overwrite
-//				}
-//			}
-//
-//			if (run) {
-//				List<InvertedIndex.SearchResult> temp = index.search(usedPhrases, exact);
-//				//Must synchronized... (i.e. if load factor hits limit and resizes)
-//				synchronized (queryEntries) {
-//					queryEntries.put(lineFinal, temp);
-//				}
-//				log.debug("Added {}. to queryEntries", lineFinal);
-//			}
 
-			//Version 2.
-			List<InvertedIndex.SearchResult> singleEntryPoint = null;
+			/* Version 2: Purpose:
+			 *  To circumvent two synchronized blocks.
+			 */
+			List<InvertedIndex.SearchResult> entryPoint = null;
 			synchronized (queryEntries) {
 				if (run = !queryEntries.containsKey(lineFinal)) {
-					queryEntries.put(lineFinal, singleEntryPoint = new ArrayList<>()); //Reserves so no need to overwrite
+					queryEntries.put(lineFinal, entryPoint = new ArrayList<>()); //Reserves so no need to overwrite
 				}
 			}
 
 			if (run) {
-				singleEntryPoint.addAll(index.search(usedPhrases, exact));
+				entryPoint.addAll(index.search(usedPhrases, exact));
 				log.debug("Added {}. to queryEntries", lineFinal);
 			}
 		}

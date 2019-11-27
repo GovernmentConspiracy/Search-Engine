@@ -12,10 +12,19 @@ import org.apache.logging.log4j.Logger;
  * Java Theory and Practice: Thread Pools and Work Queues</a>
  */
 public class WorkQueue {
-
+	/**
+	 * A boolean which causes the calling thread to wait for the WorkQueue to finish.
+	 */
 	private volatile boolean waitingFinish;
+
+	/**
+	 * The count of workers still working. Synchronized by this object.
+	 */
 	private int pending;
 
+	/**
+	 * The logger of this class.
+	 */
 	private static final Logger log = LogManager.getLogger();
 
 	/**
@@ -87,6 +96,8 @@ public class WorkQueue {
 
 	/**
 	 * Waits for all pending work to be finished.
+	 *
+	 * @throws InterruptedException if wait() call gets interrupted.
 	 */
 	public void finish() throws InterruptedException {
 		waitingFinish = true;
@@ -128,12 +139,17 @@ public class WorkQueue {
 		return workers.length;
 	}
 
-
+	/**
+	 * Increases pending by one. Synchronized by this object.
+	 */
 	public synchronized void increment() {
 		pending++;
 		log.trace("pending++ == {}", pending);
 	}
 
+	/**
+	 * Decreases pending by one. Synchronized by this object.
+	 */
 	public synchronized void decrement() {
 		pending--;
 		log.trace("pending-- == {}", pending);
