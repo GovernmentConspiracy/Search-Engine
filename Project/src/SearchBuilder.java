@@ -40,13 +40,29 @@ public class SearchBuilder {
 	private static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
 
 	/**
+	 * A work queue for parsing each line into queryEntries.
+	 */
+	private final WorkQueue queue;
+
+	/**
+	 * Constructs a Search builder of an existing Index.
+	 *
+	 * @param index the query to be set
+	 * @param queue the work queue executing the code.
+	 */
+	public SearchBuilder(InvertedIndex index, WorkQueue queue) {
+		this.index = index;
+		queryEntries = new TreeMap<>();
+		this.queue = queue;
+	}
+
+	/**
 	 * Constructs a Search builder of an existing Index.
 	 *
 	 * @param index the query to be set
 	 */
 	public SearchBuilder(InvertedIndex index) {
-		this.index = index;
-		queryEntries = new TreeMap<>();
+		this(index, null);
 	}
 
 	/**
@@ -60,27 +76,30 @@ public class SearchBuilder {
 		if (Files.isDirectory(input)) {
 			throw new IOException("Query Path: Wrong file type");
 		}
-		try (
-				BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
-		) {
-			String line;
-			while ((line = reader.readLine()) != null) {
-				parseQuery(line, exact);
+		if (queue != null) {
+			parseQueries(input, exact, queue);
+		} else {
+			try (
+					BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
+			) {
+				String line;
+				while ((line = reader.readLine()) != null) {
+					parseQuery(line, exact);
+				}
 			}
 		}
 	}
 
 	/**
-	 * Populates queryEntries map with each query in the input file.
+	 * Populates queryEntries map with each query in the input file using
+	 * a WorkQueue.
 	 *
 	 * @param input the input path
 	 * @param exact a flag to turn on exact matches
+	 * @param queue the work queue executing the code.
 	 * @throws IOException if the input file is a directory or could not be opened
 	 */
-	public void parseQueries(Path input, boolean exact, WorkQueue queue) throws IOException {
-		if (Files.isDirectory(input)) {
-			throw new IOException("Query Path: Wrong file type");
-		}
+	private void parseQueries(Path input, boolean exact, WorkQueue queue) throws IOException {
 		try (
 				BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
 		) {

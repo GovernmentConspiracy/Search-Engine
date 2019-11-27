@@ -119,22 +119,17 @@ public class Driver {
 			index = new InvertedIndex();
 		}
 
-		SearchBuilder search = new SearchBuilder(index);
-		InvertedIndexBuilder indexBuilder = new InvertedIndexBuilder(index);
+		SearchBuilder search = new SearchBuilder(index, queue);
+		InvertedIndexBuilder indexBuilder = new InvertedIndexBuilder(index, queue);
 
-		log.info("Thread count = {}", threadCount);
+		log.debug("Thread count = {}", threadCount);
 		Path indexPath, queryPath;
 
 		log.debug(command.toString());
 		log.info("Started");
 		if ((indexPath = command.getPath(PATH_FLAG)) != null) {
 			try {
-				if (isMultiThreaded) {
-					indexBuilder.traverse(indexPath, queue);
-				} else {
-					indexBuilder.traverse(indexPath);
-				}
-
+				indexBuilder.traverse(indexPath);
 			} catch (IOException e) {
 				log.error("Input path for index could not be read. Check if other threads are accessing it.");
 			}
@@ -165,19 +160,11 @@ public class Driver {
 
 		if ((queryPath = command.getPath(QUERY_FLAG)) != null) {
 			try {
-				if (isMultiThreaded) {
-					search.parseQueries(queryPath, command.hasFlag(EXACT_FLAG), queue);
-				} else {
-					search.parseQueries(queryPath, command.hasFlag(EXACT_FLAG));
-				}
+				search.parseQueries(queryPath, command.hasFlag(EXACT_FLAG));
 			} catch (IOException e) {
 				log.error("Input path for index could not be read.");
 				log.info("Check if this is the correct path type.");
 			}
-		}
-
-		if (isMultiThreaded) {
-			queue.shutdown();
 		}
 
 		if (command.hasFlag(RESULTS_FLAG)) {
@@ -188,6 +175,10 @@ public class Driver {
 				log.warn("Output path for counts could not be written.");
 				log.info("Check if path ({}) is writable (i.e is not a directory)\n", resultsOutput);
 			}
+		}
+
+		if (isMultiThreaded) {
+			queue.shutdown();
 		}
 
 		/* -------------- End -------------- */

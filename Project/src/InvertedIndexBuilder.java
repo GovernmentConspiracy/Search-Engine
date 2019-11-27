@@ -20,7 +20,11 @@ import java.util.List;
  */
 public class InvertedIndexBuilder {
 
+	/**
+	 * The logger of this class.
+	 */
 	private static final Logger log = LogManager.getLogger();
+
 	/**
 	 * Default SnowballStemmer algorithm from OpenNLP.
 	 */
@@ -32,48 +36,32 @@ public class InvertedIndexBuilder {
 	private final InvertedIndex index;
 
 	/**
+	 * A work queue for parsing each file into index.
+	 */
+	private final WorkQueue queue;
+
+	/**
+	 * Constructs a InvertedIndex builder of an existing index
+	 *
+	 * @param index the initial contents of the InvertedIndex
+	 * @param queue the work queue executing the code.
+	 */
+	public InvertedIndexBuilder(InvertedIndex index, WorkQueue queue) {
+		this.index = index;
+		this.queue = queue;
+	}
+
+	/**
 	 * Constructs a InvertedIndex builder of an existing index
 	 *
 	 * @param index the initial contents of the InvertedIndex
 	 */
 	public InvertedIndexBuilder(InvertedIndex index) {
-		this.index = index;
+		this(index, null);
 	}
 
 	/**
-	 * Constructs an InvertedIndex builder with a new thread safe index if
-	 * isConcurrent is {@code true}, or a normal index otherwise.
-	 *
-	 * @param isConcurrent if {@code true}, c
-	 */
-	public InvertedIndexBuilder(boolean isConcurrent) {
-		this(new InvertedIndex());
-	}
-
-	/**
-	 * Constructs an InvertedIndex builder of an existing index, then loads it with files.
-	 *
-	 * @param index the initial contents of the InvertedIndex
-	 * @param input the path to be added into InvertedIndex
-	 * @throws IOException if the files could not be inserted
-	 */
-	public InvertedIndexBuilder(InvertedIndex index, Path input) throws IOException {
-		this(index);
-		this.traverse(input);
-	}
-
-	/**
-	 * Constructs an InvertedIndex builder of a new index, then loads it with files.
-	 *
-	 * @param input the path to be added into InvertedIndex
-	 * @throws IOException if the files could not be inserted
-	 */
-	public InvertedIndexBuilder(Path input) throws IOException {
-		this(new InvertedIndex(), input);
-	}
-
-	/**
-	 * Adds a non-directory file into the index
+	 * Adds a non-directory file into the index.
 	 *
 	 * @param input the path to be added into InvertedIndex
 	 * @return the reference of this object
@@ -85,7 +73,7 @@ public class InvertedIndexBuilder {
 	}
 
 	/**
-	 * Adds a non-directory file into the index
+	 * Adds a non-directory file into the index.
 	 *
 	 * @param input the path to be added into InvertedIndex
 	 * @param index the index to be edited
@@ -109,14 +97,19 @@ public class InvertedIndexBuilder {
 	}
 
 	/**
-	 * Adds non-directory files into the index from directory input
+	 * Adds non-directory files into the index from directory input.
+	 * If this.queue is not null, the work queue version is used.
 	 *
 	 * @param input the path to be added into InvertedIndex
 	 * @return the reference of this object
 	 * @throws IOException if the files could not be inserted
 	 */
 	public InvertedIndexBuilder traverse(Path input) throws IOException {
-		InvertedIndexBuilder.traverse(input, index);
+		if (queue != null) {
+			InvertedIndexBuilder.traverse(input, (ConcurrentInvertedIndex) index, queue);
+		} else {
+			InvertedIndexBuilder.traverse(input, index);
+		}
 		return this;
 	}
 
@@ -196,10 +189,26 @@ public class InvertedIndexBuilder {
 		return index;
 	}
 
+	/**
+	 * A Runnable for populating the index.
+	 */
 	private static class IndexingTask implements Runnable {
+		/**
+		 * The common InvertedIndex.
+		 */
 		private final ConcurrentInvertedIndex index;
+		/**
+		 * The path to be added into the common InvertedIndex.
+		 */
 		private final Path path;
 
+		/**
+		 * Constructs a new IndexingTask runnable to add
+		 * a non-directory file into the index.
+		 *
+		 * @param index the thread-safe index to be edited
+		 * @param path the path to be added into InvertedIndex
+		 */
 		public IndexingTask(ConcurrentInvertedIndex index, Path path) {
 			this.index = index;
 			this.path = path;
