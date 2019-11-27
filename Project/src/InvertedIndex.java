@@ -409,18 +409,16 @@ public class InvertedIndex {
 	public void addAll(InvertedIndex other) {
 		for (String word : other.indexMap.keySet()) {
 			indexMap.putIfAbsent(word, new TreeMap<>());
-			var wordMap = indexMap.get(word);
+			var pathMap = indexMap.get(word);
 			for (String path : other.indexMap.get(word).keySet()) {
-				wordMap.putIfAbsent(path, new TreeSet<>());
-				var pathMap = wordMap.get(path);
-				for (Long location : other.indexMap.get(word).get(path)) {
-					if (pathMap.add(location)) {
-						countMap.put(
-								path,
-								Math.max(location, countMap.getOrDefault(path, (long) 0))
-						);
-					}
-				}
+				pathMap.putIfAbsent(path, new TreeSet<>());
+				var locSet = pathMap.get(path);
+				locSet.addAll(other.indexMap.get(word).get(path));
+				countMap.put(
+						path,
+						Math.max(locSet.last(), countMap.getOrDefault(path, (long) 0))
+				);
+
 			}
 		}
 	}

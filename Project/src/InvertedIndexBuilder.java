@@ -134,6 +134,15 @@ public class InvertedIndexBuilder {
 		}
 	}
 
+	/**
+	 * Adds non-directory files into the thread-safe index from directory input,
+	 * using a WorkQueue.
+	 *
+	 * @param input the path to be added into InvertedIndex
+	 * @param index the thread-safe index to be edited
+	 * @param queue the work queue executing the code.
+	 * @throws IOException if the files could not be inserted
+	 */
 	public static void traverse(Path input, ConcurrentInvertedIndex index, WorkQueue queue) throws IOException {
 		List<Path> paths = getFiles(input);
 		int i = 0;
