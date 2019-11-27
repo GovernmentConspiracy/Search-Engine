@@ -22,16 +22,6 @@ public class ConcurrentInvertedIndex extends InvertedIndex {
 		lock = new SimpleReadWriteLock();
 	}
 
-//	@Override
-//	public void indexPut(String word, String pathString, long location) {
-//		lock.writeLock().lock();
-//		try {
-//			super.indexPut(word, pathString, location);
-//		} finally {
-//			lock.writeLock().unlock();
-//		}
-//	}
-
 	@Override
 	public void indexToJSON(Path output) throws IOException {
 		lock.readLock().lock();
