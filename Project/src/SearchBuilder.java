@@ -77,31 +77,15 @@ public class SearchBuilder {
 			usedPhrases.add(stemmer.stem(s).toString());
 		}
 
-		if (!usedPhrases.isEmpty()) {
-			String lineFinal = String.join(" ", usedPhrases);
-			if (!queryEntries.containsKey(lineFinal)) {
-				queryEntries.put(lineFinal, index.search(usedPhrases, exact));
-			}
-		}
-		
-		/*
-		 * TODO For multithreading, it ends up easier if you test the opposite cases.
-		 * Otherwise, the nested if statements are tricky to synchronize properly.
-		 * 
 		if (usedPhrases.isEmpty()) {
 			return;
 		}
-		
 		String lineFinal = String.join(" ", usedPhrases);
-		
 		if (queryEntries.containsKey(lineFinal)) {
 			return;
 		}
-		
-		var local = index.search(usedPhrases, exact)
+		var local = index.search(usedPhrases, exact);
 		queryEntries.put(lineFinal, local);
-		}
-		 */
 	}
 
 	/**
