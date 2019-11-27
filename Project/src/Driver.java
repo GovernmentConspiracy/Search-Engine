@@ -89,12 +89,14 @@ public class Driver {
 		ArgumentParser command = new ArgumentParser(args);
 		InvertedIndex index = new InvertedIndex();
 		SearchBuilder search = new SearchBuilder(index);
+		// TODO Project 3 prep: Create an InvertedIndexBuilder object here
 
 		Path indexPath, queryPath;
 
 		log.debug(command.toString());
 		if ((indexPath = command.getPath(PATH_FLAG)) != null) {
 			try {
+				// TODO Call the non-static traverse method here
 				InvertedIndexBuilder.traverse(indexPath, index);
 			} catch (IOException e) {
 				log.error("Input path for index could not be read. Check if other threads are accessing it.");
