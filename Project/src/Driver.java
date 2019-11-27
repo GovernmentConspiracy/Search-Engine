@@ -39,6 +39,11 @@ public class Driver {
 	 */
 	private static final Path RESULTS_DEFAULT_PATH = Path.of("results.json");
 
+	/**
+	 * The default thread count if no count is specified in the thread flag.
+	 */
+	private static final int DEFAULT_THREADS = 5;
+
 	/* -------------- Arguments -------------- */
 
 	/**
@@ -72,6 +77,11 @@ public class Driver {
 	 */
 	private static final String RESULTS_FLAG = "-results";
 
+	/**
+	 * A string representing the threads flag
+	 */
+	private static final String THREAD_FLAG = "-threads";
+
 	/* -------------- Main -------------- */
 
 	/**
@@ -87,22 +97,50 @@ public class Driver {
 
 		/* --------------Start -------------- */
 		ArgumentParser command = new ArgumentParser(args);
-		InvertedIndex index = new InvertedIndex();
+		InvertedIndex index;
+		WorkQueue queue = null;
+		boolean isMultiThreaded;
+		int threadCount = 1;
+
+		log.info(command);
+
+		if (isMultiThreaded = command.hasFlag(THREAD_FLAG)) {
+			index = new ConcurrentInvertedIndex();
+			try {
+				threadCount = Integer.parseInt(command.getString(THREAD_FLAG));
+			} catch (NumberFormatException e) {
+				threadCount = DEFAULT_THREADS;
+			}
+			if (threadCount <= 0) {
+				threadCount = DEFAULT_THREADS;
+			}
+			queue = new WorkQueue(threadCount);
+		} else {
+			index = new InvertedIndex();
+		}
+
 		SearchBuilder search = new SearchBuilder(index);
 		InvertedIndexBuilder indexBuilder = new InvertedIndexBuilder(index);
 
+		log.info("Thread count = {}", threadCount);
 		Path indexPath, queryPath;
 
 		log.debug(command.toString());
+		log.info("Started");
 		if ((indexPath = command.getPath(PATH_FLAG)) != null) {
 			try {
-				indexBuilder.traverse(indexPath);
+				if (isMultiThreaded) {
+					indexBuilder.traverse(indexPath, queue);
+				} else {
+					indexBuilder.traverse(indexPath);
+				}
+
 			} catch (IOException e) {
 				log.error("Input path for index could not be read. Check if other threads are accessing it.");
 			}
 		} else {
 			log.warn("Program arguments {} is required\n", PATH_FLAG);
-			log.info("Ex:\n -path \"project-tests/huckleberry.txt\"\n");
+			log.info("Ex:\n {} \"project-tests/huckleberry.txt\"\n", PATH_FLAG);
 		}
 
 		if (command.hasFlag(INDEX_FLAG)) {
@@ -127,14 +165,19 @@ public class Driver {
 
 		if ((queryPath = command.getPath(QUERY_FLAG)) != null) {
 			try {
-				search.parseQueries(queryPath, command.hasFlag(EXACT_FLAG));
+				if (isMultiThreaded) {
+					search.parseQueries(queryPath, command.hasFlag(EXACT_FLAG), queue);
+				} else {
+					search.parseQueries(queryPath, command.hasFlag(EXACT_FLAG));
+				}
 			} catch (IOException e) {
 				log.error("Input path for index could not be read.");
 				log.info("Check if this is the correct path type.");
 			}
-		} else {
-			log.warn("Program arguments {} is required\n", PATH_FLAG);
-			log.info("Ex:\n -path \"project-tests/huckleberry.txt\"\n");
+		}
+
+		if (isMultiThreaded) {
+			queue.shutdown();
 		}
 
 		if (command.hasFlag(RESULTS_FLAG)) {
@@ -146,7 +189,6 @@ public class Driver {
 				log.info("Check if path ({}) is writable (i.e is not a directory)\n", resultsOutput);
 			}
 		}
-
 
 		/* -------------- End -------------- */
 

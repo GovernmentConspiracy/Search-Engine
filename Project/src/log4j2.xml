@@ -1,23 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE log4j:configuration>
-<Configuration status="INFO">
+<Configuration>
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">
-			<PatternLayout
-					pattern="%m%throwable{short.localizedMessage}%n">
+			<PatternLayout>
+				<Pattern>%m%throwable{short.localizedMessage}%n</Pattern>
 			</PatternLayout>
 		</Console>
 
 		<File name="FileLog" fileName="debug.log" append="false">
-			<PatternLayout
-					pattern="[%sequenceNumber %.-2level] %class.%method %file@%-3line %threadName: %m%n">
+			<PatternLayout>
+				<Pattern>[%sequenceNumber %.-2level] %class.%method %file@%-3line %threadName: %m%n</Pattern>
 			</PatternLayout>
 		</File>
 	</Appenders>
 
 	<Loggers>
 		<Root level="ALL">
-			<AppenderRef ref="Console" level="INFO"/>
+			<AppenderRef ref="Console" level="OFF"/>
 			<AppenderRef ref="FileLog" level="OFF"/>
 		</Root>
 	</Loggers>

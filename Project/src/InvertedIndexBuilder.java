@@ -1,5 +1,7 @@
 import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,6 +19,8 @@ import java.util.List;
  * @version v2.3.0
  */
 public class InvertedIndexBuilder {
+
+	private static final Logger log = LogManager.getLogger();
 	/**
 	 * Default SnowballStemmer algorithm from OpenNLP.
 	 */
@@ -37,9 +41,12 @@ public class InvertedIndexBuilder {
 	}
 
 	/**
-	 * Constructs an InvertedIndex builder with a new index
+	 * Constructs an InvertedIndex builder with a new thread safe index if
+	 * isConcurrent is {@code true}, or a normal index otherwise.
+	 *
+	 * @param isConcurrent if {@code true}, c
 	 */
-	public InvertedIndexBuilder() {
+	public InvertedIndexBuilder(boolean isConcurrent) {
 		this(new InvertedIndex());
 	}
 
@@ -85,12 +92,13 @@ public class InvertedIndexBuilder {
 	 * @throws IOException if the files could not be inserted
 	 */
 	public static void addFile(Path input, InvertedIndex index) throws IOException {
-		Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
+		log.trace("Called addFile()");
 		try (
 				BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
 		) {
 			String line;
 			long i = 0;
+			Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
 			String inputString = input.toString();
 			while ((line = reader.readLine()) != null) {
 				for (String word : TextParser.parse(line)) {
@@ -127,6 +135,33 @@ public class InvertedIndexBuilder {
 	}
 
 	/**
+	 * Adds non-directory files into the thread-safe index from directory input,
+	 * using a WorkQueue.
+	 *
+	 * @param input the path to be added into InvertedIndex
+	 * @param index the thread-safe index to be edited
+	 * @param queue the work queue executing the code.
+	 * @throws IOException if the files could not be inserted
+	 */
+	public static void traverse(Path input, ConcurrentInvertedIndex index, WorkQueue queue) throws IOException {
+		List<Path> paths = getFiles(input);
+		int i = 0;
+		for (Path in : paths) {
+			log.trace("Executing {}...", ++i);
+			queue.execute(new IndexingTask(index, in)); //convert to runnable
+		}
+
+		try {
+			log.debug("NOTIFICATION: .finish() called");
+			queue.finish();
+			log.debug("NOTIFICATION: .finish() ended");
+		} catch (InterruptedException e) {
+			log.error("Work did NOT finish.");
+		}
+	}
+
+
+	/**
 	 * Returns all paths of {@code Path input} recursively or an empty list if the files could not be generated.
 	 *
 	 * @param input The root directory or text tile
@@ -159,5 +194,27 @@ public class InvertedIndexBuilder {
 	 */
 	public InvertedIndex getIndex() {
 		return index;
+	}
+
+	private static class IndexingTask implements Runnable {
+		private final ConcurrentInvertedIndex index;
+		private final Path path;
+
+		public IndexingTask(ConcurrentInvertedIndex index, Path path) {
+			this.index = index;
+			this.path = path;
+		}
+
+		@Override
+		public void run() {
+			InvertedIndex tempIndex = new InvertedIndex();
+			try {
+				addFile(path, tempIndex);
+			} catch (IOException e) {
+				log.warn(e.getMessage());
+			}
+			index.addAll(tempIndex); //Expensive in memory
+			log.debug("Added tempIndex into index!");
+		}
 	}
 }

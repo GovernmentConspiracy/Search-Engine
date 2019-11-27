@@ -41,6 +41,8 @@ public class InvertedIndex {
 		this.countMap = new TreeMap<>();
 	}
 
+	/* -------- Write Operations -------- */
+
 	/**
 	 * Helper method used to store word, pathString, and location into indexMap. See usages below
 	 *
@@ -51,12 +53,12 @@ public class InvertedIndex {
 	public void indexPut(String word, String pathString, long location) {
 		indexMap.putIfAbsent(word, new TreeMap<>());
 		indexMap.get(word).putIfAbsent(pathString, new TreeSet<>());
-		indexMap.get(word).get(pathString).add(location);
-
-		countMap.put(
-				pathString,
-				Math.max(location, countMap.getOrDefault(pathString, (long) 0))
-		);
+		if (indexMap.get(word).get(pathString).add(location)) {
+			countMap.put(
+					pathString,
+					Math.max(location, countMap.getOrDefault(pathString, (long) 0))
+			);
+		}
 	}
 
 	/**
@@ -85,6 +87,8 @@ public class InvertedIndex {
 		}
 		return true;
 	}
+
+	/* -------- Read Operations -------- */
 
 	/**
 	 * Returns a sorted list of SearchResults which match the inverted index.
@@ -394,4 +398,28 @@ public class InvertedIndex {
 		}
 	}
 
+	/* -------- Bulk Operations -------- */
+
+	/**
+	 * Adds all of the elements in the specified InvertedIndex
+	 * onto this InvertedIndex.
+	 *
+	 * @param other the other InvertedIndex
+	 */
+	public void addAll(InvertedIndex other) {
+		for (String word : other.indexMap.keySet()) {
+			indexMap.putIfAbsent(word, new TreeMap<>());
+			var pathMap = indexMap.get(word);
+			for (String path : other.indexMap.get(word).keySet()) {
+				pathMap.putIfAbsent(path, new TreeSet<>());
+				var locSet = pathMap.get(path);
+				locSet.addAll(other.indexMap.get(word).get(path));
+				countMap.put(
+						path,
+						Math.max(locSet.last(), countMap.getOrDefault(path, (long) 0))
+				);
+
+			}
+		}
+	}
 }
