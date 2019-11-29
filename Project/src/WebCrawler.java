@@ -62,16 +62,17 @@ public class WebCrawler {
 		if (consumed.size() >= limit || !consumed.add(input)) {
 			return false;
 		}
-		return addUrl(HtmlFetcher.fetch(input, REDIRECT_LIMIT), input.toString(), index);
-	}
-
-	private static boolean addUrl(String html, String inputString, InvertedIndex index) {
-		log.trace("Called addURL()");
-
+		String html = HtmlFetcher.fetch(input, REDIRECT_LIMIT);
 		if (html == null) {
 			log.warn("HTML could not be fetched.");
 			return false;
 		}
+		addUrl(html, input.toString(), index);
+		return true;
+	}
+
+	private static void addUrl(String html, String inputString, InvertedIndex index) {
+		log.trace("Called addURL()");
 
 		long i = 0;
 		Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
@@ -80,7 +81,6 @@ public class WebCrawler {
 		for (String word : TextParser.parse(cleaned)) {
 			index.indexPut(stemmer.stem(word).toString(), inputString, ++i);
 		}
-		return true;
 	}
 
 	/**
@@ -145,10 +145,12 @@ public class WebCrawler {
 		@Override
 		public void run() {
 			String html = HtmlFetcher.fetch(url, REDIRECT_LIMIT);
+
 			if (html == null) {
 				return;
 			}
 
+			/* 1. Placed this first in order for other workers to start immediately. */
 			ArrayList<URL> references = LinkParser.listLinks(url, html);
 			synchronized (consumed) {
 				for (URL reference : references) {
@@ -161,6 +163,7 @@ public class WebCrawler {
 				}
 			}
 
+			/* 2. Placed after so other crawling tasks can run. */
 			InvertedIndex tempIndex = new InvertedIndex();
 
 			/* Adds current url into tempIndex */
