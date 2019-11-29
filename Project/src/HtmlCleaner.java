@@ -94,7 +94,7 @@ public class HtmlCleaner {
 	 */
 	public static String stripElement(String html, String name) {
 		return html.replaceAll(
-				String.format("<(?i)(%s)(?s:.)*?>(?s:.)*?</\\1(?s:.)*?>", name),
+				String.format("<(?i)(%s)(?s:.)*?>[^<]*?</\\1\\s*?>", name),
 				" "
 		);
 	}
