@@ -44,6 +44,11 @@ public class Driver {
 	 */
 	private static final int DEFAULT_THREADS = 5;
 
+	/**
+	 * The default maximum of URLs to search if no count is specified in the url flag.
+	 */
+	private static final int DEFAULT_URL_LIMIT = 50;
+
 	/* -------------- Arguments -------------- */
 
 	/**
@@ -82,6 +87,16 @@ public class Driver {
 	 */
 	private static final String THREAD_FLAG = "-threads";
 
+	/**
+	 * A string representing the url flag
+	 */
+	private static final String URL_FLAG = "-url";
+
+	/**
+	 * A string representing the threads flag
+	 */
+	private static final String LIMIT_FLAG = "-limit";
+
 	/* -------------- Main -------------- */
 
 	/**
@@ -96,15 +111,21 @@ public class Driver {
 		Instant start = Instant.now();
 
 		/* --------------Start -------------- */
+		/* ---- Args ---- */
 		ArgumentParser command = new ArgumentParser(args);
+
+		/* ---- Data ---- */
 		InvertedIndex index;
+
+		/* ---- Param ---- */
 		WorkQueue queue = null;
 		boolean isMultiThreaded;
 		int threadCount = 1;
+		int urlLimit = DEFAULT_URL_LIMIT;
 
 		log.info(command);
 
-		if (isMultiThreaded = command.hasFlag(THREAD_FLAG)) {
+		if (isMultiThreaded = (command.hasFlag(THREAD_FLAG) || command.hasFlag(URL_FLAG)) ) {
 			index = new ConcurrentInvertedIndex();
 			try {
 				threadCount = Integer.parseInt(command.getString(THREAD_FLAG));
@@ -119,6 +140,7 @@ public class Driver {
 			index = new InvertedIndex();
 		}
 
+		/* ---- Build ---- */
 		SearchBuilder search = new SearchBuilder(index, queue);
 		InvertedIndexBuilder indexBuilder = new InvertedIndexBuilder(index, queue);
 
@@ -130,7 +152,7 @@ public class Driver {
 		if ((indexPath = command.getPath(PATH_FLAG)) != null) {
 			try {
 				indexBuilder.traverse(indexPath);
-			} catch (IOException e) {
+			} catch (IOException ioe) {
 				log.error("Input path for index could not be read. Check if other threads are accessing it.");
 			}
 		} else {
@@ -142,7 +164,7 @@ public class Driver {
 			Path indexOutput = command.getPath(INDEX_FLAG, INDEX_DEFAULT_PATH);
 			try {
 				index.indexToJSON(indexOutput);
-			} catch (IOException e) {
+			} catch (IOException ioe) {
 				log.error("Output path for index could not be written.");
 				log.info("Check if path ({}) is writable (i.e is not a directory)\n", indexOutput);
 			}
@@ -152,7 +174,7 @@ public class Driver {
 			Path countsOutput = command.getPath(COUNTS_FLAG, COUNTS_DEFAULT_PATH);
 			try {
 				index.countToJSON(countsOutput);
-			} catch (IOException e) {
+			} catch (IOException ioe) {
 				log.error("Output path for counts could not be written.");
 				log.info("Check if path ({}) is writable (i.e is not a directory)\n", countsOutput);
 			}
@@ -161,7 +183,7 @@ public class Driver {
 		if ((queryPath = command.getPath(QUERY_FLAG)) != null) {
 			try {
 				search.parseQueries(queryPath, command.hasFlag(EXACT_FLAG));
-			} catch (IOException e) {
+			} catch (IOException ioe) {
 				log.error("Input path for index could not be read.");
 				log.info("Check if this is the correct path type.");
 			}
@@ -171,7 +193,7 @@ public class Driver {
 			Path resultsOutput = command.getPath(RESULTS_FLAG, RESULTS_DEFAULT_PATH);
 			try {
 				search.queryToJSON(resultsOutput);
-			} catch (IOException e) {
+			} catch (IOException ioe) {
 				log.warn("Output path for counts could not be written.");
 				log.info("Check if path ({}) is writable (i.e is not a directory)\n", resultsOutput);
 			}
