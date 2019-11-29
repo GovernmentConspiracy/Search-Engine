@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -20,7 +21,9 @@ public class WebCrawler {
 	 */
 	private static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
 
-
+	/**
+	 * //TODO
+	 */
 	private static final int REDIRECT_LIMIT = 3;
 
 	/**
@@ -33,8 +36,14 @@ public class WebCrawler {
 	 */
 	private final WorkQueue queue;
 
+	/**
+	 * //TODO
+	 */
 	private final Set<URL> consumed;
 
+	/**
+	 * //TODO
+	 */
 	private final int limit;
 
 	public WebCrawler(ConcurrentInvertedIndex index, WorkQueue queue, int limit) {
@@ -69,10 +78,8 @@ public class WebCrawler {
 		Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
 		String cleaned = HtmlCleaner.stripHtml(html);
 
-		for (String line : cleaned.split("\n")) {
-			for (String word : TextParser.parse(line)) {
-				index.indexPut(stemmer.stem(word).toString(), inputString, ++i);
-			}
+		for (String word : TextParser.parse(cleaned)) {
+			index.indexPut(stemmer.stem(word).toString(), inputString, ++i);
 		}
 		return true;
 	}
@@ -90,7 +97,7 @@ public class WebCrawler {
 		}
 
 		log.trace("Called traverse()");
-		queue.execute(new CrawlingTask(index, input)); //convert to runnable
+		queue.execute(new CrawlingTask(input)); //convert to runnable
 
 		try {
 			log.debug("NOTIFICATION: .finish() called");
@@ -102,6 +109,11 @@ public class WebCrawler {
 		return this;
 	}
 
+	public WebCrawler traverse(String input) throws MalformedURLException {
+		return traverse(new URL(input));
+	}
+
+
 	/**
 	 * Returns the InvertedIndex of which this index builder is wrapping.
 	 *
@@ -111,14 +123,11 @@ public class WebCrawler {
 		return index;
 	}
 
+
 	/**
 	 * A Runnable for populating the index.
 	 */
 	private class CrawlingTask implements Runnable {
-		/**
-		 * The common InvertedIndex.
-		 */
-		private final ConcurrentInvertedIndex index;
 		/**
 		 * The url to be added into the common InvertedIndex.
 		 */
@@ -128,11 +137,9 @@ public class WebCrawler {
 		 * Constructs a new IndexingTask runnable to add
 		 * a non-directory file into the index.
 		 *
-		 * @param index the thread-safe index to be edited
 		 * @param url   the url to be added into InvertedIndex
 		 */
-		public CrawlingTask(ConcurrentInvertedIndex index, URL url) {
-			this.index = index;
+		CrawlingTask(URL url) {
 			this.url = url;
 		}
 
@@ -144,14 +151,13 @@ public class WebCrawler {
 			}
 
 			ArrayList<URL> references = LinkParser.listLinks(url, html);
-
 			synchronized (consumed) {
 				for (URL reference : references) {
-					if (references.size() >= limit) {
+					if (consumed.size() >= limit) {
 						break;
 					}
 					if (consumed.add(reference)) {
-						queue.execute(new CrawlingTask(index, reference));
+						queue.execute(new CrawlingTask(reference));
 					}
 				}
 			}
@@ -159,10 +165,9 @@ public class WebCrawler {
 			InvertedIndex tempIndex = new InvertedIndex();
 
 			/* Adds current url into tempIndex */
-			if (addUrl(html, url.toString(), tempIndex)) { //Not necessary
-				index.addAll(tempIndex); //Expensive in memory
-				log.debug("Added tempIndex into index!");
-			}
+			addUrl(html, url.toString(), tempIndex);
+			index.addAll(tempIndex); //Expensive in memory
+			log.debug("Added tempIndex into index!");
 		}
 	}
 

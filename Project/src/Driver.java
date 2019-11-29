@@ -1,7 +1,10 @@
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
@@ -110,56 +113,94 @@ public class Driver {
 		// store initial start time
 		Instant start = Instant.now();
 
-		/* --------------Start -------------- */
-		/* ---- Args ---- */
+		/* -------------- Start -------------- */
 		ArgumentParser command = new ArgumentParser(args);
-
-		/* ---- Data ---- */
 		InvertedIndex index;
-
-		/* ---- Param ---- */
 		WorkQueue queue = null;
 		boolean isMultiThreaded;
-		int threadCount = 1;
-		int urlLimit = DEFAULT_URL_LIMIT;
 
 		log.info(command);
 
 		if (isMultiThreaded = (command.hasFlag(THREAD_FLAG) || command.hasFlag(URL_FLAG)) ) {
+			int threadCount;
 			index = new ConcurrentInvertedIndex();
+
 			try {
 				threadCount = Integer.parseInt(command.getString(THREAD_FLAG));
 			} catch (NumberFormatException e) {
+				log.warn("Incorrect parameters in threadCount. Changed to {}", DEFAULT_THREADS);
+				log.catching(Level.DEBUG, e);
 				threadCount = DEFAULT_THREADS;
 			}
 			if (threadCount <= 0) {
 				threadCount = DEFAULT_THREADS;
 			}
 			queue = new WorkQueue(threadCount);
+			log.debug("Thread count = {}", threadCount);
 		} else {
 			index = new InvertedIndex();
 		}
 
 		/* ---- Build ---- */
-		SearchBuilder search = new SearchBuilder(index, queue);
-		InvertedIndexBuilder indexBuilder = new InvertedIndexBuilder(index, queue);
-
-		log.debug("Thread count = {}", threadCount);
-		Path indexPath, queryPath;
-
 		log.debug(command.toString());
 		log.info("Started");
+
+		/* Builds InvertedIndex in WebCrawler */
+		String urlStringSeed;
+		if ((urlStringSeed = command.getString(URL_FLAG)) != null) {
+			assert index instanceof ConcurrentInvertedIndex;
+
+			/* Set urlLimit */
+			int urlLimit = DEFAULT_URL_LIMIT;
+			if (command.hasFlag(LIMIT_FLAG)) {
+				try {
+					urlLimit = Integer.parseInt(command.getString(LIMIT_FLAG));
+				} catch (NumberFormatException e) {
+					log.warn("Incorrect parameters in threadCount. Changed to {}", DEFAULT_URL_LIMIT);
+					log.catching(Level.DEBUG, e);
+				}
+				if (urlLimit <= 0) {
+					urlLimit = DEFAULT_URL_LIMIT;
+				}
+				log.debug("Url limit = {}", urlLimit);
+			}
+
+			WebCrawler crawler = new WebCrawler((ConcurrentInvertedIndex) index, queue, urlLimit);
+			try {
+				crawler.traverse(urlStringSeed);
+			} catch (MalformedURLException mue) {
+				log.error("Input path for index could not be read. Check if other threads are accessing it.");
+			}
+		}
+
+		/* Builds InvertedIndex in InvertedIndexBuilder */
+		Path indexPath;
 		if ((indexPath = command.getPath(PATH_FLAG)) != null) {
+			InvertedIndexBuilder indexBuilder = new InvertedIndexBuilder(index, queue);
 			try {
 				indexBuilder.traverse(indexPath);
 			} catch (IOException ioe) {
 				log.error("Input path for index could not be read. Check if other threads are accessing it.");
 			}
-		} else {
-			log.warn("Program arguments {} is required\n", PATH_FLAG);
-			log.info("Ex:\n {} \"project-tests/huckleberry.txt\"\n", PATH_FLAG);
 		}
 
+		/* Builds Queries with SearchBuilder */
+		SearchBuilder search = new SearchBuilder(index, queue);
+		Path queryPath;
+		if ((queryPath = command.getPath(QUERY_FLAG)) != null) {
+			try {
+				search.parseQueries(queryPath, command.hasFlag(EXACT_FLAG));
+			} catch (IOException ioe) {
+				log.error("Input path for index could not be read.");
+				log.info("Check if this is the correct path type.");
+			}
+		}
+
+		if (isMultiThreaded) {
+			queue.shutdown();
+		}
+
+		/* Outputs Index as pretty JSON */
 		if (command.hasFlag(INDEX_FLAG)) {
 			Path indexOutput = command.getPath(INDEX_FLAG, INDEX_DEFAULT_PATH);
 			try {
@@ -170,6 +211,7 @@ public class Driver {
 			}
 		}
 
+		/* Outputs Counts as pretty JSON */
 		if (command.hasFlag(COUNTS_FLAG)) {
 			Path countsOutput = command.getPath(COUNTS_FLAG, COUNTS_DEFAULT_PATH);
 			try {
@@ -180,15 +222,7 @@ public class Driver {
 			}
 		}
 
-		if ((queryPath = command.getPath(QUERY_FLAG)) != null) {
-			try {
-				search.parseQueries(queryPath, command.hasFlag(EXACT_FLAG));
-			} catch (IOException ioe) {
-				log.error("Input path for index could not be read.");
-				log.info("Check if this is the correct path type.");
-			}
-		}
-
+		/* Outputs Search Results as pretty JSON */
 		if (command.hasFlag(RESULTS_FLAG)) {
 			Path resultsOutput = command.getPath(RESULTS_FLAG, RESULTS_DEFAULT_PATH);
 			try {
@@ -199,9 +233,6 @@ public class Driver {
 			}
 		}
 
-		if (isMultiThreaded) {
-			queue.shutdown();
-		}
 
 		/* -------------- End -------------- */
 
