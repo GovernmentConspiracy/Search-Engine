@@ -93,8 +93,9 @@ public class HtmlCleaner {
 	 * @return text without that HTML element
 	 */
 	public static String stripElement(String html, String name) {
+		String regex = "<(?i)(%s)(?:\\s[^>]*?)?>(?s:.*?)</\\1\\s*?>"; //5.353, 5.324, 5.417, 4.978
 		return html.replaceAll(
-				String.format("<(?i)(%s)(?s:.)*?>[^<]*?</\\1\\s*?>", name), //Strange error occurred here
+				String.format(regex, name), //Strange error occurred here
 				" "
 		);
 	}
