@@ -193,7 +193,11 @@ public class Driver {
 				log.error("Input path for index could not be read.");
 				log.info("Check if this is the correct path type.");
 			}
+		} else {
+			log.warn("Program arguments {} is required\n", QUERY_FLAG);
+			log.info("Ex:\n {} \"project-tests/huckleberry.txt\"\n", QUERY_FLAG);
 		}
+
 
 		if (isMultiThreaded) {
 			queue.shutdown();
