@@ -174,7 +174,7 @@ public class SearchBuilder {
 		 * @param query a String of search phrases
 		 * @param exact a flag to turn on exact matches
 		 */
-		public ParseQueryTask(String query, boolean exact) {
+		ParseQueryTask(String query, boolean exact) {
 			this.query = query;
 			this.exact = exact;
 		}

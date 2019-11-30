@@ -58,6 +58,13 @@ public class LinkParser {
 		}
 	}
 
+	/**
+	 * Creates a new URL the path is appended to the URL.
+	 *
+	 * @param url  the base url
+	 * @param path the path to be appended
+	 * @return a URL with appended path
+	 */
 	public static URL append(URL url, String path) {
 		try {
 			return new URL(url, path);
@@ -85,8 +92,9 @@ public class LinkParser {
 	/**
 	 * Returns a list of all the matches found in the provided text.
 	 *
-	 * @param text  text to search in
-	 * @param regex regular expression to search for
+	 * @param text       text to search in
+	 * @param regex      regular expression to search for
+	 * @param groupLevel the regex group to search for
 	 * @return list of all matches found in text
 	 * @see <a href=https://github.com/usf-cs212-fall2019/lectures/blob/master/Regular%20Expressions/src/RegexHelper.java>Taken from lecture code</a>
 	 */
@@ -99,29 +107,5 @@ public class LinkParser {
 			matches.add(m.group(groupLevel));
 		}
 		return matches;
-	}
-
-	/**
-	 * Demonstrates this class.
-	 *
-	 * @param args unused
-	 * @throws Exception
-	 */
-	public static void main(String[] args) throws Exception {
-		// this demonstrates cleaning
-		URL valid = new URL("https://docs.python.org/3/library/functions.html?highlight=string#format");
-		System.out.println(" Link: " + valid);
-		System.out.println("Clean: " + clean(valid));
-		System.out.println();
-
-		// this demonstrates encoding
-		URL space = new URL("https://www.google.com/search?q=hello world");
-		System.out.println(" Link: " + space);
-		System.out.println("Clean: " + clean(space));
-		System.out.println();
-
-		// this throws an exception
-		URL invalid = new URL("javascript:alert('Hello!');");
-		System.out.println(invalid);
 	}
 }

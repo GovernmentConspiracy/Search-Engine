@@ -78,6 +78,14 @@ public class HtmlFetcher {
 		return withinBounds(getStatusCode(headers), 300, 399);
 	}
 
+	/**
+	 * Returns {@code true} if value is between lower and upper.
+	 *
+	 * @param value the value to be tested
+	 * @param lower the minimum bound
+	 * @param upper the maximum bound
+	 * @return {@code true} if value is within [lower, upper]
+	 */
 	private static boolean withinBounds(int value, int lower, int upper) {
 		return lower <= value && value <= upper;
 	}

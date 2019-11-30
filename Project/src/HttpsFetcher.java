@@ -37,7 +37,7 @@ public class HttpsFetcher {
 				Socket socket = openConnection(url);
 				PrintWriter request = new PrintWriter(socket.getOutputStream());
 				InputStreamReader input = new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8);
-				BufferedReader response = new BufferedReader(input);
+				BufferedReader response = new BufferedReader(input)
 		) {
 			printGetRequest(request, url);
 			Map<String, List<String>> headers = getHeaderFields(response);
@@ -67,8 +67,8 @@ public class HttpsFetcher {
 	 *
 	 * @param url the url to connect
 	 * @return a socket connection for that url
-	 * @throws UnknownHostException
-	 * @throws IOException
+	 * @throws UnknownHostException if the host could not be determined
+	 * @throws IOException          if the host could not be opened
 	 * @see URL#openConnection()
 	 */
 	public static Socket openConnection(URL url) throws UnknownHostException, IOException {
@@ -89,9 +89,8 @@ public class HttpsFetcher {
 	 *
 	 * @param writer a writer created from a socket connection
 	 * @param url    the url to fetch via the socket connection
-	 * @throws IOException
 	 */
-	public static void printGetRequest(PrintWriter writer, URL url) throws IOException {
+	public static void printGetRequest(PrintWriter writer, URL url) {
 		String host = url.getHost();
 		String resource = url.getFile().isEmpty() ? "/" : url.getFile();
 
@@ -109,7 +108,7 @@ public class HttpsFetcher {
 	 *
 	 * @param response a reader created from a socket connection
 	 * @return a map of header fields to a list of header values
-	 * @throws IOException
+	 * @throws IOException if the reader could not be opened
 	 * @see URLConnection#getHeaderFields()
 	 */
 	public static Map<String, List<String>> getHeaderFields(BufferedReader response) throws IOException {
@@ -135,9 +134,8 @@ public class HttpsFetcher {
 	 *
 	 * @param response the reader created from a socket connection
 	 * @return a list of lines read from the socket reader
-	 * @throws IOException
 	 */
-	public static List<String> getContent(BufferedReader response) throws IOException {
+	public static List<String> getContent(BufferedReader response) {
 		return response.lines().collect(Collectors.toList());
 	}
 }

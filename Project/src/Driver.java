@@ -4,7 +4,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
@@ -48,7 +47,7 @@ public class Driver {
 	private static final int DEFAULT_THREADS = 5;
 
 	/**
-	 * The default maximum of URLs to search if no count is specified in the url flag.
+	 * The default maximum of URLs to search if no count is properly specified in the url flag.
 	 */
 	private static final int DEFAULT_URL_LIMIT = 50;
 
@@ -121,7 +120,7 @@ public class Driver {
 
 		log.info(command);
 
-		if (isMultiThreaded = (command.hasFlag(THREAD_FLAG) || command.hasFlag(URL_FLAG)) ) {
+		if (isMultiThreaded = (command.hasFlag(THREAD_FLAG) || command.hasFlag(URL_FLAG))) {
 			int threadCount;
 			index = new ConcurrentInvertedIndex();
 
