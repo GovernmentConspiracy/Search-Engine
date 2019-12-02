@@ -407,6 +407,7 @@ public class InvertedIndex {
 	 * @param other the other InvertedIndex
 	 */
 	public void addAll(InvertedIndex other) {
+		// TODO Can avoid copies
 		for (String word : other.indexMap.keySet()) {
 			indexMap.putIfAbsent(word, new TreeMap<>());
 			var pathMap = indexMap.get(word);
@@ -414,6 +415,8 @@ public class InvertedIndex {
 				pathMap.putIfAbsent(path, new TreeSet<>());
 				var locSet = pathMap.get(path);
 				locSet.addAll(other.indexMap.get(word).get(path));
+				
+				// TODO Put this in another loop
 				countMap.put(
 						path,
 						Math.max(locSet.last(), countMap.getOrDefault(path, (long) 0))
@@ -421,5 +424,9 @@ public class InvertedIndex {
 
 			}
 		}
+		
+		// TODO Do a put when can (test expicitly instead of using ifAbsent)
+		
+		// TODO loop through other.countMap here and update this.countMap
 	}
 }
