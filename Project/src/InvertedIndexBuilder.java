@@ -11,6 +11,11 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
+/*
+ * TODO Create separate classes for multithreading (but extend the existing ones to get started).
+ * 
+ */
+
 /**
  * A builder class for inverted index, which is an index to store words and
  * the location (both file location and position in file) of where those words were found.
@@ -106,6 +111,7 @@ public class InvertedIndexBuilder {
 	 */
 	public InvertedIndexBuilder traverse(Path input) throws IOException {
 		if (queue != null) {
+			// TODO Not a safe downcast
 			InvertedIndexBuilder.traverse(input, (ConcurrentInvertedIndex) index, queue);
 		} else {
 			InvertedIndexBuilder.traverse(input, index);
@@ -192,7 +198,7 @@ public class InvertedIndexBuilder {
 	/**
 	 * A Runnable for populating the index.
 	 */
-	private static class IndexingTask implements Runnable {
+	private static class IndexingTask implements Runnable { // TODO Make non-static and then access the index directly, no need for a member
 		/**
 		 * The common InvertedIndex.
 		 */

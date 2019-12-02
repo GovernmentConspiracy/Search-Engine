@@ -99,6 +99,12 @@ public class SimpleReadWriteLock {
 		// NOTE: DO NOT MODIFY THIS METHOD
 		return other != null && other.getId() == Thread.currentThread().getId();
 	}
+	
+	/*
+	 * TODO Unsafe synchronization here, different approach, will have to verify later that this is functional
+	 * 
+	 * Or use # or readers and # of writers
+	 */
 
 	/**
 	 * Returns {@code true} if the lockState is dormant.

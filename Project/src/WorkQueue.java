@@ -15,7 +15,7 @@ public class WorkQueue {
 	/**
 	 * A boolean which causes the calling thread to wait for the WorkQueue to finish.
 	 */
-	private volatile boolean waitingFinish;
+	private volatile boolean waitingFinish; // TODO Remove
 
 	/**
 	 * The count of workers still working. Synchronized by this object.
@@ -86,6 +86,7 @@ public class WorkQueue {
 	 * @param r work request (in the form of a {@link Runnable} object)
 	 */
 	public void execute(Runnable r) {
+		// TODO increment();
 		if (!waitingFinish) {
 			synchronized (queue) {
 				queue.addLast(r);
@@ -93,6 +94,10 @@ public class WorkQueue {
 			}
 		}
 	}
+	
+	/*
+	 * TODO restore how the wait/notify was working for threads that need to test queue.isEmpty (workers)
+	 */
 
 	/**
 	 * Waits for all pending work to be finished.
@@ -102,11 +107,11 @@ public class WorkQueue {
 	public void finish() throws InterruptedException {
 		waitingFinish = true;
 
-		synchronized (queue) {
+		synchronized (queue) { // TODO Remove
 			queue.notifyAll();
 		}
 		synchronized (this) {
-			while (!queue.isEmpty() || pending > 0) {
+			while (!queue.isEmpty() || pending > 0) { // TODO Remove queue.isEmpty()
 				log.trace("finish() waiting at pending = {}, queue.size() = {}", pending, queue.size());
 				this.wait();
 				log.debug("finish() woke up with pending = {}.", pending);
@@ -173,8 +178,8 @@ public class WorkQueue {
 
 			while (true) {
 				synchronized (queue) {
-					while (queue.isEmpty() && !shutdown) {
-						if (waitingFinish) {
+					while (queue.isEmpty() && !shutdown) { // TODO Restore to original
+						if (waitingFinish) { // TODO Remove
 							synchronized (this) {
 								this.notifyAll();
 								log.debug("Called this.notifyAll()");
@@ -195,7 +200,7 @@ public class WorkQueue {
 						log.debug("Worker forcefully terminated.");
 						break;
 					} else {
-						increment();
+						increment(); // TODO Move to execute
 						r = queue.removeFirst();
 						log.trace("Worker received work.");
 					}
@@ -205,11 +210,13 @@ public class WorkQueue {
 					log.trace("Running...");
 					r.run();
 					log.trace("Running passed.");
-					decrement();
+					decrement(); // TODO Moved
 				} catch (RuntimeException ex) {
 					// catch runtime exceptions to avoid leaking threads
 					log.warn("Warning: Running failed! Work queue encountered an exception while running. {}", ex.toString());
 				}
+				
+				// TODO Move decrement() here or in a finally block
 			}
 
 			log.debug("Worker at pending = {} ended", pending);
