@@ -151,8 +151,14 @@ public class ConcurrentInvertedIndex extends InvertedIndex {
 			lock.writeLock().unlock();
 		}
 	}
-	
-	/*
-	 * TODO This class is not thread-safe, missing one method: indexPut
-	 */
+
+	@Override
+	public void indexPut(String word, String pathString, long location) {
+		lock.writeLock().lock();
+		try {
+			super.indexPut(word, pathString, location);
+		} finally {
+			lock.writeLock().unlock();
+		}
+	}
 }

@@ -407,26 +407,26 @@ public class InvertedIndex {
 	 * @param other the other InvertedIndex
 	 */
 	public void addAll(InvertedIndex other) {
-		// TODO Can avoid copies
 		for (String word : other.indexMap.keySet()) {
-			indexMap.putIfAbsent(word, new TreeMap<>());
-			var pathMap = indexMap.get(word);
-			for (String path : other.indexMap.get(word).keySet()) {
-				pathMap.putIfAbsent(path, new TreeSet<>());
-				var locSet = pathMap.get(path);
-				locSet.addAll(other.indexMap.get(word).get(path));
-				
-				// TODO Put this in another loop
-				countMap.put(
-						path,
-						Math.max(locSet.last(), countMap.getOrDefault(path, (long) 0))
-				);
+			if (!indexMap.containsKey(word)) {
+				indexMap.put(word, other.indexMap.get(word));
+			} else {
+				TreeMap<String, TreeSet<Long>> pathMap = indexMap.get(word);
 
+				for (String path : other.indexMap.get(word).keySet()) {
+					if (!pathMap.containsKey(path)) { //contains(path, word) gets blocked by read lock
+						pathMap.put(path, other.indexMap.get(word).get(path));
+					} else {
+						pathMap.get(path).addAll(other.indexMap.get(word).get(path));
+					}
+				}
 			}
 		}
-		
-		// TODO Do a put when can (test expicitly instead of using ifAbsent)
-		
-		// TODO loop through other.countMap here and update this.countMap
+
+		for (String path : other.countMap.keySet()) {
+			countMap.put(path,
+					Math.max(other.countMap.get(path), countMap.getOrDefault(path, (long) 0))
+			);
+		}
 	}
 }

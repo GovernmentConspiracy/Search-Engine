@@ -27,34 +27,17 @@ public class SearchBuilder {
 	/**
 	 * A nested data structure which stores search queries mapped to the search results.
 	 */
-	private final Map<String, List<InvertedIndex.SearchResult>> queryEntries;
+	protected final Map<String, List<InvertedIndex.SearchResult>> queryEntries;
 
 	/**
 	 * The index to be used to search for queries
 	 */
-	private final InvertedIndex index;
+	protected final InvertedIndex index;
 
 	/**
 	 * Default SnowballStemmer algorithm from OpenNLP.
 	 */
-	private static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
-
-	/**
-	 * A work queue for parsing each line into queryEntries.
-	 */
-	private final WorkQueue queue;
-
-	/**
-	 * Constructs a Search builder of an existing Index.
-	 *
-	 * @param index the query to be set
-	 * @param queue the work queue executing the code.
-	 */
-	public SearchBuilder(InvertedIndex index, WorkQueue queue) {
-		this.index = index;
-		queryEntries = new TreeMap<>();
-		this.queue = queue;
-	}
+	protected static final SnowballStemmer.ALGORITHM DEFAULT_LANG = SnowballStemmer.ALGORITHM.ENGLISH;
 
 	/**
 	 * Constructs a Search builder of an existing Index.
@@ -62,7 +45,8 @@ public class SearchBuilder {
 	 * @param index the query to be set
 	 */
 	public SearchBuilder(InvertedIndex index) {
-		this(index, null);
+		this.index = index;
+		queryEntries = new TreeMap<>();
 	}
 
 	/**
@@ -76,44 +60,12 @@ public class SearchBuilder {
 		if (Files.isDirectory(input)) {
 			throw new IOException("Query Path: Wrong file type");
 		}
-		if (queue != null) {
-			parseQueries(input, exact, queue);
-		} else {
-			try (
-					BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
-			) {
-				String line;
-				while ((line = reader.readLine()) != null) {
-					parseQuery(line, exact);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Populates queryEntries map with each query in the input file using
-	 * a WorkQueue.
-	 *
-	 * @param input the input path
-	 * @param exact a flag to turn on exact matches
-	 * @param queue the work queue executing the code.
-	 * @throws IOException if the input file is a directory or could not be opened
-	 */
-	private void parseQueries(Path input, boolean exact, WorkQueue queue) throws IOException {
 		try (
 				BufferedReader reader = Files.newBufferedReader(input, StandardCharsets.UTF_8)
 		) {
 			String line;
 			while ((line = reader.readLine()) != null) {
-				queue.execute(new ParseQueryTask(line, exact));
-			}
-
-			try {
-				log.debug("NOTIFICATION: .finish() called");
-				queue.finish();
-				log.debug("NOTIFICATION: .finish() ended");
-			} catch (InterruptedException e) {
-				log.error("Work did NOT finish.");
+				parseQuery(line, exact);
 			}
 		}
 	}
@@ -151,63 +103,5 @@ public class SearchBuilder {
 	 */
 	public void queryToJSON(Path output) throws IOException {
 		SimpleJsonWriter.asObject(queryEntries, output);
-	}
-
-	/**
-	 * A Runnable for adding to queryEntries.
-	 */
-	private class ParseQueryTask implements Runnable {
-		/**
-		 * A String of search phrases separated by a space
-		 */
-		private final String query;
-
-		/**
-		 * A boolean flag which determines whether to turn on exact matches
-		 */
-		private final boolean exact;
-
-		/**
-		 * Constructs a new ParseQueryTask runnable to add
-		 * a query string and its SearchResults into queryEntries.
-		 *
-		 * @param query a String of search phrases
-		 * @param exact a flag to turn on exact matches
-		 */
-		public ParseQueryTask(String query, boolean exact) {
-			this.query = query;
-			this.exact = exact;
-		}
-
-		@Override
-		public void run() {
-			Stemmer stemmer = new SnowballStemmer(DEFAULT_LANG);
-			Set<String> usedPhrases = new TreeSet<>();
-			for (String s : TextParser.parse(query)) {
-				usedPhrases.add(stemmer.stem(s).toString());
-			}
-
-			if (usedPhrases.isEmpty()) {
-				return;
-			}
-
-			String lineFinal = String.join(" ", usedPhrases);
-			boolean run;
-
-			/* Version 2: Purpose:
-			 *  To circumvent two synchronized blocks.
-			 */
-			List<InvertedIndex.SearchResult> entryPoint = null;
-			synchronized (queryEntries) {
-				if (run = !queryEntries.containsKey(lineFinal)) {
-					queryEntries.put(lineFinal, entryPoint = new ArrayList<>()); //Reserves so no need to overwrite
-				}
-			}
-
-			if (run) {
-				entryPoint.addAll(index.search(usedPhrases, exact));
-				log.debug("Added {}. to queryEntries", lineFinal);
-			}
-		}
 	}
 }
