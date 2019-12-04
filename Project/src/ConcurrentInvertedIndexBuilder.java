@@ -5,11 +5,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
-/*
- * TODO Create separate classes for multithreading (but extend the existing ones to get started).
- *
- */
-
 /**
  * A thread-safe builder class for inverted index, which is an index to store words and
  * the location (both file location and position in file) of where those words were found.

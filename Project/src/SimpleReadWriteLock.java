@@ -20,12 +20,12 @@ public class SimpleReadWriteLock {
 	private static final Logger log = LogManager.getLogger();
 
 	/**
-	 * int values representing the single active writer
+	 * int value representing the single active writer
 	 */
 	private static final int WRITING_STATE = -1;
 
 	/**
-	 * int values representing the dormant state
+	 * int value representing the dormant state
 	 */
 	private static final int DORMANT_STATE = 0; //READING_STATE is any value above DORMANT_STATE
 
@@ -44,7 +44,7 @@ public class SimpleReadWriteLock {
 	 * <p>
 	 * -1 for 1 exclusive writer,
 	 * 0 for no readers nor writers,
-	 * >0 for lockState number of writers
+	 * >0 for lockState number of readers
 	 */
 	private int lockState;
 
@@ -99,12 +99,6 @@ public class SimpleReadWriteLock {
 		// NOTE: DO NOT MODIFY THIS METHOD
 		return other != null && other.getId() == Thread.currentThread().getId();
 	}
-	
-	/*
-	 * TODO Unsafe synchronization here, different approach, will have to verify later that this is functional
-	 * 
-	 * Or use # or readers and # of writers
-	 */
 
 	/**
 	 * Returns {@code true} if the lockState is dormant.
