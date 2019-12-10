@@ -6,7 +6,7 @@ import java.util.*;
  * A thread-safe index to store words and the location (both file location and position in file) of where those words were found.
  *
  * @author Jason Liang
- * @version v3.1.0
+ * @version v4.0.1
  */
 public class ConcurrentInvertedIndex extends InvertedIndex {
 	/**

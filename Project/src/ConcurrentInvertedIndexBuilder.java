@@ -10,7 +10,7 @@ import java.util.List;
  * the location (both file location and position in file) of where those words were found.
  *
  * @author Jason Liang
- * @version v3.1.0
+ * @version v4.0.1
  */
 public class ConcurrentInvertedIndexBuilder extends InvertedIndexBuilder {
 
@@ -78,8 +78,7 @@ public class ConcurrentInvertedIndexBuilder extends InvertedIndexBuilder {
 			} catch (IOException e) {
 				log.warn(e.getMessage());
 			}
-			index.addAll(tempIndex); //Expensive in memory
-//			log.debug("Added tempIndex into index!");
+			index.addAll(tempIndex);
 		}
 	}
 }

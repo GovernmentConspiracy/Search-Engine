@@ -11,7 +11,7 @@ import java.util.*;
  * <p>Auxiliary functions includes word counter and JSON writer
  *
  * @author Jason Liang
- * @version v3.1.0
+ * @version v4.0.1
  */
 public class InvertedIndex {
 
@@ -415,7 +415,7 @@ public class InvertedIndex {
 				TreeMap<String, TreeSet<Long>> otherPathMap = other.indexMap.get(word);
 
 				for (String path : otherPathMap.keySet()) {
-					if (!pathMap.containsKey(path)) { //contains(path, word) gets blocked by read lock
+					if (!pathMap.containsKey(path)) {
 						pathMap.put(path, otherPathMap.get(path));
 					} else {
 						pathMap.get(path).addAll(otherPathMap.get(path));

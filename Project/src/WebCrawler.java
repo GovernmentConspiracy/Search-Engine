@@ -14,7 +14,7 @@ import java.util.Set;
  * the location (both file location and position in file) of where those words were found.
  *
  * @author Jason Liang
- * @version v4.0.0
+ * @version v4.0.1
  */
 public class WebCrawler {
 	/**

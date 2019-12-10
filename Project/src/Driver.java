@@ -120,19 +120,17 @@ public class Driver {
 
 		log.info(command);
 
+		InvertedIndexBuilder indexBuilder;
+		SearchBuilder searchBuilder;
+
 		if (isMultiThreaded = (command.hasFlag(THREAD_FLAG) || command.hasFlag(URL_FLAG))) {
 			int threadCount;
 			index = new ConcurrentInvertedIndex();
 
-		InvertedIndexBuilder indexBuilder;
-		SearchBuilder search;
-
-		if (isMultiThreaded = command.hasFlag(THREAD_FLAG)) {
 			try {
 				threadCount = Integer.parseInt(command.getString(THREAD_FLAG));
 			} catch (NumberFormatException e) {
 				log.warn("Incorrect parameters in threadCount. Changed to {}", DEFAULT_THREADS);
-				log.catching(Level.DEBUG, e);
 				threadCount = DEFAULT_THREADS;
 			}
 
@@ -140,17 +138,16 @@ public class Driver {
 				threadCount = DEFAULT_THREADS;
 			}
 
-			index = new ConcurrentInvertedIndex();
 			queue = new WorkQueue(threadCount);
 			log.debug("Thread count = {}", threadCount);
 
 			indexBuilder = new ConcurrentInvertedIndexBuilder((ConcurrentInvertedIndex) index, queue);
-			search = new ConcurrentSearchBuilder((ConcurrentInvertedIndex) index, queue);
+			searchBuilder = new ConcurrentSearchBuilder((ConcurrentInvertedIndex) index, queue);
 		} else {
 			index = new InvertedIndex();
 
 			indexBuilder = new InvertedIndexBuilder(index);
-			search = new SearchBuilder(index);
+			searchBuilder = new SearchBuilder(index);
 		}
 
 		/* ---- Build ---- */
@@ -188,7 +185,6 @@ public class Driver {
 		/* Builds InvertedIndex in InvertedIndexBuilder */
 		Path indexPath;
 		if ((indexPath = command.getPath(PATH_FLAG)) != null) {
-			InvertedIndexBuilder indexBuilder = new InvertedIndexBuilder(index, queue);
 			try {
 				indexBuilder.traverse(indexPath);
 			} catch (IOException ioe) {
@@ -197,11 +193,10 @@ public class Driver {
 		}
 
 		/* Builds Queries with SearchBuilder */
-		SearchBuilder search = new SearchBuilder(index, queue);
 		Path queryPath;
 		if ((queryPath = command.getPath(QUERY_FLAG)) != null) {
 			try {
-				search.parseQueries(queryPath, command.hasFlag(EXACT_FLAG));
+				searchBuilder.parseQueries(queryPath, command.hasFlag(EXACT_FLAG));
 			} catch (IOException ioe) {
 				log.error("Input path for index could not be read.");
 				log.info("Check if this is the correct path type.");
@@ -210,7 +205,6 @@ public class Driver {
 			log.warn("Program arguments {} is required\n", QUERY_FLAG);
 			log.info("Ex:\n {} \"project-tests/huckleberry.txt\"\n", QUERY_FLAG);
 		}
-
 
 		if (isMultiThreaded) {
 			queue.shutdown();
@@ -242,7 +236,7 @@ public class Driver {
 		if (command.hasFlag(RESULTS_FLAG)) {
 			Path resultsOutput = command.getPath(RESULTS_FLAG, RESULTS_DEFAULT_PATH);
 			try {
-				search.queryToJSON(resultsOutput);
+				searchBuilder.queryToJSON(resultsOutput);
 			} catch (IOException ioe) {
 				log.warn("Output path for counts could not be written.");
 				log.info("Check if path ({}) is writable (i.e is not a directory)\n", resultsOutput);
