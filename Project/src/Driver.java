@@ -124,6 +124,10 @@ public class Driver {
 			int threadCount;
 			index = new ConcurrentInvertedIndex();
 
+		InvertedIndexBuilder indexBuilder;
+		SearchBuilder search;
+
+		if (isMultiThreaded = command.hasFlag(THREAD_FLAG)) {
 			try {
 				threadCount = Integer.parseInt(command.getString(THREAD_FLAG));
 			} catch (NumberFormatException e) {
@@ -131,13 +135,22 @@ public class Driver {
 				log.catching(Level.DEBUG, e);
 				threadCount = DEFAULT_THREADS;
 			}
+
 			if (threadCount <= 0) {
 				threadCount = DEFAULT_THREADS;
 			}
+
+			index = new ConcurrentInvertedIndex();
 			queue = new WorkQueue(threadCount);
 			log.debug("Thread count = {}", threadCount);
+
+			indexBuilder = new ConcurrentInvertedIndexBuilder((ConcurrentInvertedIndex) index, queue);
+			search = new ConcurrentSearchBuilder((ConcurrentInvertedIndex) index, queue);
 		} else {
 			index = new InvertedIndex();
+
+			indexBuilder = new InvertedIndexBuilder(index);
+			search = new SearchBuilder(index);
 		}
 
 		/* ---- Build ---- */

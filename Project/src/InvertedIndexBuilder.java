@@ -16,7 +16,7 @@ import java.util.List;
  * the location (both file location and position in file) of where those words were found.
  *
  * @author Jason Liang
- * @version v3.0.2
+ * @version v3.1.0
  */
 public class InvertedIndexBuilder {
 
@@ -33,23 +33,7 @@ public class InvertedIndexBuilder {
 	/**
 	 * An index to store words and the location (both file location and position in file) of where those words were found.
 	 */
-	private final InvertedIndex index;
-
-	/**
-	 * A work queue for parsing each file into index.
-	 */
-	private final WorkQueue queue;
-
-	/**
-	 * Constructs a InvertedIndex builder of an existing index
-	 *
-	 * @param index the initial contents of the InvertedIndex
-	 * @param queue the work queue executing the code.
-	 */
-	public InvertedIndexBuilder(InvertedIndex index, WorkQueue queue) {
-		this.index = index;
-		this.queue = queue;
-	}
+	protected final InvertedIndex index;
 
 	/**
 	 * Constructs a InvertedIndex builder of an existing index
@@ -57,7 +41,7 @@ public class InvertedIndexBuilder {
 	 * @param index the initial contents of the InvertedIndex
 	 */
 	public InvertedIndexBuilder(InvertedIndex index) {
-		this(index, null);
+		this.index = index;
 	}
 
 	/**
@@ -105,11 +89,7 @@ public class InvertedIndexBuilder {
 	 * @throws IOException if the files could not be inserted
 	 */
 	public InvertedIndexBuilder traverse(Path input) throws IOException {
-		if (queue != null) {
-			InvertedIndexBuilder.traverse(input, (ConcurrentInvertedIndex) index, queue);
-		} else {
-			InvertedIndexBuilder.traverse(input, index);
-		}
+		InvertedIndexBuilder.traverse(input, index);
 		return this;
 	}
 
@@ -126,33 +106,6 @@ public class InvertedIndexBuilder {
 			addFile(in, index);
 		}
 	}
-
-	/**
-	 * Adds non-directory files into the thread-safe index from directory input,
-	 * using a WorkQueue.
-	 *
-	 * @param input the path to be added into InvertedIndex
-	 * @param index the thread-safe index to be edited
-	 * @param queue the work queue executing the code.
-	 * @throws IOException if the files could not be inserted
-	 */
-	public static void traverse(Path input, ConcurrentInvertedIndex index, WorkQueue queue) throws IOException {
-		List<Path> paths = getFiles(input);
-		int i = 0;
-		for (Path in : paths) {
-			log.trace("Executing {}...", ++i);
-			queue.execute(new IndexingTask(index, in)); //convert to runnable
-		}
-
-		try {
-			log.debug("NOTIFICATION: .finish() called");
-			queue.finish();
-			log.debug("NOTIFICATION: .finish() ended");
-		} catch (InterruptedException e) {
-			log.error("Work did NOT finish.");
-		}
-	}
-
 
 	/**
 	 * Returns all paths of {@code Path input} recursively or an empty list if the files could not be generated.
@@ -187,43 +140,5 @@ public class InvertedIndexBuilder {
 	 */
 	public InvertedIndex getIndex() {
 		return index;
-	}
-
-	/**
-	 * A Runnable for populating the index.
-	 */
-	private static class IndexingTask implements Runnable {
-		/**
-		 * The common InvertedIndex.
-		 */
-		private final ConcurrentInvertedIndex index;
-		/**
-		 * The path to be added into the common InvertedIndex.
-		 */
-		private final Path path;
-
-		/**
-		 * Constructs a new IndexingTask runnable to add
-		 * a non-directory file into the index.
-		 *
-		 * @param index the thread-safe index to be edited
-		 * @param path  the path to be added into InvertedIndex
-		 */
-		public IndexingTask(ConcurrentInvertedIndex index, Path path) {
-			this.index = index;
-			this.path = path;
-		}
-
-		@Override
-		public void run() {
-			InvertedIndex tempIndex = new InvertedIndex();
-			try {
-				addFile(path, tempIndex);
-			} catch (IOException e) {
-				log.warn(e.getMessage());
-			}
-			index.addAll(tempIndex); //Expensive in memory
-			log.debug("Added tempIndex into index!");
-		}
 	}
 }

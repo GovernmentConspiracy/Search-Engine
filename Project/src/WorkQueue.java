@@ -12,10 +12,6 @@ import org.apache.logging.log4j.Logger;
  * Java Theory and Practice: Thread Pools and Work Queues</a>
  */
 public class WorkQueue {
-	/**
-	 * A boolean which causes the calling thread to wait for the WorkQueue to finish.
-	 */
-	private volatile boolean waitingFinish;
 
 	/**
 	 * The count of workers still working. Synchronized by this object.
@@ -67,7 +63,6 @@ public class WorkQueue {
 		this.workers = new PoolWorker[threads];
 
 		this.shutdown = false;
-		this.waitingFinish = false;
 		pending = 0;
 
 		// start the threads so they are waiting in the background
@@ -86,6 +81,7 @@ public class WorkQueue {
 	 * @param r work request (in the form of a {@link Runnable} object)
 	 */
 	public void execute(Runnable r) {
+		increment();
 		synchronized (queue) {
 			queue.addLast(r);
 			queue.notifyAll();
@@ -97,21 +93,12 @@ public class WorkQueue {
 	 *
 	 * @throws InterruptedException if wait() call gets interrupted.
 	 */
-	public void finish() throws InterruptedException {
-		waitingFinish = true;
-
-		synchronized (queue) {
-			queue.notifyAll();
+	public synchronized void finish() throws InterruptedException {
+		while (pending > 0) {
+			log.debug("finish() waiting at pending = {}.", pending);
+			this.wait();
+			log.debug("finish() woke up with pending = {}.", pending);
 		}
-		synchronized (this) {
-			while (!queue.isEmpty() || pending > 0) {
-				log.trace("finish() waiting at pending = {}, queue.size() = {}", pending, queue.size());
-				this.wait();
-				log.debug("finish() woke up with pending = {}.", pending);
-			}
-		}
-
-		waitingFinish = false;
 	}
 
 	/**
@@ -172,12 +159,6 @@ public class WorkQueue {
 			while (true) {
 				synchronized (queue) {
 					while (queue.isEmpty() && !shutdown) {
-						if (waitingFinish) {
-							synchronized (this) {
-								this.notifyAll();
-								log.debug("Called this.notifyAll()");
-							}
-						}
 						try {
 							log.debug("Waiting for work");
 							queue.wait();
@@ -186,31 +167,27 @@ public class WorkQueue {
 							Thread.currentThread().interrupt();
 						}
 					}
-					// exit while for one of two reasons:
-					// (a) queue has work, or (b) shutdown has been called
 
 					if (shutdown) {
 						log.debug("Worker forcefully terminated.");
 						break;
 					} else {
-						increment();
 						r = queue.removeFirst();
-						log.trace("Worker received work.");
 					}
 				}
 
 				try {
-					log.trace("Running...");
 					r.run();
 					log.trace("Running passed.");
-					decrement();
 				} catch (RuntimeException ex) {
 					// catch runtime exceptions to avoid leaking threads
 					log.warn("Warning: Running failed! Work queue encountered an exception while running. {}", ex.toString());
+				} finally {
+					decrement();
 				}
 			}
 
-			log.debug("Worker at pending = {} ended", pending);
+			log.debug("Worker ended at pending = {}", pending);
 		}
 	}
 }

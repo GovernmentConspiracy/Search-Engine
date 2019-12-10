@@ -20,12 +20,12 @@ public class SimpleReadWriteLock {
 	private static final Logger log = LogManager.getLogger();
 
 	/**
-	 * int values representing the single active writer
+	 * int value representing the single active writer
 	 */
 	private static final int WRITING_STATE = -1;
 
 	/**
-	 * int values representing the dormant state
+	 * int value representing the dormant state
 	 */
 	private static final int DORMANT_STATE = 0; //READING_STATE is any value above DORMANT_STATE
 
@@ -44,7 +44,7 @@ public class SimpleReadWriteLock {
 	 * <p>
 	 * -1 for 1 exclusive writer,
 	 * 0 for no readers nor writers,
-	 * >0 for lockState number of writers
+	 * >0 for lockState number of readers
 	 */
 	private int lockState;
 
@@ -105,7 +105,7 @@ public class SimpleReadWriteLock {
 	 *
 	 * @return returns {@code true} if the lockState is dormant.
 	 */
-	public boolean isDormant() {
+	private boolean isDormant() {
 		return lockState == DORMANT_STATE;
 	}
 
@@ -115,7 +115,7 @@ public class SimpleReadWriteLock {
 	 *
 	 * @return returns {@code true} if the lockState is writing.
 	 */
-	public boolean isWriting() {
+	private boolean isWriting() {
 		return lockState == WRITING_STATE;
 	}
 
@@ -125,7 +125,7 @@ public class SimpleReadWriteLock {
 	 *
 	 * @return returns {@code true} if the lockState is reading.
 	 */
-	public boolean isReading() {
+	private boolean isReading() {
 		return lockState > DORMANT_STATE;
 	}
 
@@ -159,10 +159,10 @@ public class SimpleReadWriteLock {
 		 */
 		@Override
 		public void unlock() {
-			if (!isReading()) { //Breaks if there's no reader threads
-				throw new IllegalMonitorStateException();
-			}
 			synchronized (lock) {
+				if (!isReading()) { //Breaks if there's no reader threads
+					throw new IllegalMonitorStateException();
+				}
 				lockState--; //decrease writer count
 				if (isDormant()) { //Don't let reader's unlock() be annoying
 					lock.notifyAll();
@@ -214,9 +214,7 @@ public class SimpleReadWriteLock {
 		 */
 		@Override
 		public void unlock() throws ConcurrentModificationException {
-			if (!isWriting() || !sameThread(targetedThread)) {
-				throw new ConcurrentModificationException();
-			}
+
 			/*
 			 * Should not call notifyAll() outside of synchronized block:
 			 *  May cause fast bypass of two writer objects, one just entering the synchronized block,
@@ -224,10 +222,13 @@ public class SimpleReadWriteLock {
 			 *  Meaning 2 concurrent writes
 			 */
 			synchronized (lock) {
+				if (!isWriting() || !sameThread(targetedThread)) {
+					throw new ConcurrentModificationException();
+				}
+
 				lockState = DORMANT_STATE;
 				targetedThread = null;
 				lock.notifyAll();
-
 			}
 			log.trace("WriteLock unlocked.");
 		}
