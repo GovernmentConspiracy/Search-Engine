@@ -15,11 +15,11 @@ public interface SimpleLock {
 	 * becomes disabled for thread scheduling purposes and lies dormant until the
 	 * lock has been acquired.
 	 */
-	public void lock();
+	void lock();
 
 	/**
 	 * Releases the lock.
 	 */
-	public void unlock();
+	void unlock();
 
 }

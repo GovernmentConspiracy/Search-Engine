@@ -1,7 +1,5 @@
 import opennlp.tools.stemmer.Stemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,13 +14,9 @@ import java.util.*;
  * and a query stores word count.
  *
  * @author Jason Liang
- * @version v3.0.2
+ * @version v3.1.0
  */
 public class SearchBuilder {
-	/**
-	 * The logger of this class.
-	 */
-	private static final Logger log = LogManager.getLogger();
 
 	/**
 	 * A nested data structure which stores search queries mapped to the search results.
@@ -42,7 +36,7 @@ public class SearchBuilder {
 	/**
 	 * Constructs a Search builder of an existing Index.
 	 *
-	 * @param index the query to be set
+	 * @param index the index used to set the query
 	 */
 	public SearchBuilder(InvertedIndex index) {
 		this.index = index;
@@ -91,8 +85,7 @@ public class SearchBuilder {
 		if (queryEntries.containsKey(lineFinal)) {
 			return;
 		}
-		var local = index.search(usedPhrases, exact);
-		queryEntries.put(lineFinal, local);
+		queryEntries.put(lineFinal, index.search(usedPhrases, exact));
 	}
 
 	/**

@@ -19,7 +19,7 @@ import java.util.TreeSet;
  * and a query stores word count.
  *
  * @author Jason Liang
- * @version v3.0.2
+ * @version v3.1.0
  */
 public class ConcurrentSearchBuilder extends SearchBuilder {
 
@@ -33,6 +33,12 @@ public class ConcurrentSearchBuilder extends SearchBuilder {
 	 */
 	private final WorkQueue queue;
 
+	/**
+	 * Constructs a Search builder of an existing Index.
+	 *
+	 * @param index the index used to set the query
+	 * @param queue the work queue executing the code
+	 */
 	public ConcurrentSearchBuilder(ConcurrentInvertedIndex index, WorkQueue queue) {
 		super(index);
 		this.queue = queue;
@@ -54,7 +60,6 @@ public class ConcurrentSearchBuilder extends SearchBuilder {
 			try {
 				log.debug("NOTIFICATION: .finish() called");
 				queue.finish();
-				log.debug("NOTIFICATION: .finish() ended");
 			} catch (InterruptedException e) {
 				log.error("Work did NOT finish.");
 			}
@@ -82,7 +87,7 @@ public class ConcurrentSearchBuilder extends SearchBuilder {
 		 * @param query a String of search phrases
 		 * @param exact a flag to turn on exact matches
 		 */
-		public ParseQueryTask(String query, boolean exact) {
+		ParseQueryTask(String query, boolean exact) {
 			this.query = query;
 			this.exact = exact;
 		}

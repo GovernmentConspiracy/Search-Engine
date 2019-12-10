@@ -95,7 +95,7 @@ public class WorkQueue {
 	 */
 	public synchronized void finish() throws InterruptedException {
 		while (pending > 0) {
-			log.trace("finish() waiting at pending = {}.", pending);
+			log.debug("finish() waiting at pending = {}.", pending);
 			this.wait();
 			log.debug("finish() woke up with pending = {}.", pending);
 		}
@@ -173,12 +173,10 @@ public class WorkQueue {
 						break;
 					} else {
 						r = queue.removeFirst();
-						log.trace("Worker received work.");
 					}
 				}
 
 				try {
-					log.trace("Running...");
 					r.run();
 					log.trace("Running passed.");
 				} catch (RuntimeException ex) {
@@ -189,7 +187,7 @@ public class WorkQueue {
 				}
 			}
 
-			log.debug("Worker at pending = {} ended", pending);
+			log.debug("Worker ended at pending = {}", pending);
 		}
 	}
 }

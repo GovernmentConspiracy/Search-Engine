@@ -10,7 +10,7 @@ import java.util.List;
  * the location (both file location and position in file) of where those words were found.
  *
  * @author Jason Liang
- * @version v3.0.2
+ * @version v3.1.0
  */
 public class ConcurrentInvertedIndexBuilder extends InvertedIndexBuilder {
 
@@ -38,16 +38,13 @@ public class ConcurrentInvertedIndexBuilder extends InvertedIndexBuilder {
 	@Override
 	public ConcurrentInvertedIndexBuilder traverse(Path input) throws IOException {
 		List<Path> paths = getFiles(input);
-		int i = 0;
 		for (Path in : paths) {
-			log.trace("Executing {}...", ++i);
 			queue.execute(new IndexingTask(in)); //convert to runnable
 		}
 
 		try {
 			log.debug("NOTIFICATION: .finish() called");
 			queue.finish();
-			log.debug("NOTIFICATION: .finish() ended");
 		} catch (InterruptedException e) {
 			log.error("Work did NOT finish.");
 		}
@@ -69,7 +66,7 @@ public class ConcurrentInvertedIndexBuilder extends InvertedIndexBuilder {
 		 *
 		 * @param path the path to be added into InvertedIndex
 		 */
-		public IndexingTask(Path path) {
+		IndexingTask(Path path) {
 			this.path = path;
 		}
 
@@ -82,7 +79,7 @@ public class ConcurrentInvertedIndexBuilder extends InvertedIndexBuilder {
 				log.warn(e.getMessage());
 			}
 			index.addAll(tempIndex); //Expensive in memory
-			log.debug("Added tempIndex into index!");
+//			log.debug("Added tempIndex into index!");
 		}
 	}
 }
