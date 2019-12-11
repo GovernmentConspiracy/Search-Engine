@@ -120,6 +120,14 @@ public class Driver {
 
 			index = new ConcurrentInvertedIndex();
 			queue = new WorkQueue(threadCount);
+			
+			// TODO Avoid downcast
+			/*
+
+			ConcurrentInvertedIndex concurrent = new ConcurrentInvertedIndex();
+			index = concurrent;
+
+			 */
 
 			indexBuilder = new ConcurrentInvertedIndexBuilder((ConcurrentInvertedIndex) index, queue);
 			search = new ConcurrentSearchBuilder((ConcurrentInvertedIndex) index, queue);

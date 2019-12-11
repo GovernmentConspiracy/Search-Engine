@@ -17,6 +17,15 @@ import java.util.*;
  * @version v3.1.0
  */
 public class SearchBuilder {
+	
+	/*
+	 * TODO Breaking encapsulation
+	 * 
+	 * 1) Create methods to read/write safely from the private data
+	 * 
+	 * 2) Create a common parent (interface) that SearchBuilder and ConcurrentSearchBuilder implement,
+	 * but both have their own data and implementations.
+	 */
 
 	/**
 	 * A nested data structure which stores search queries mapped to the search results.

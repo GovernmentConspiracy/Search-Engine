@@ -121,6 +121,21 @@ public class ConcurrentSearchBuilder extends SearchBuilder {
 				entryPoint.addAll(index.search(usedPhrases, exact));
 				log.debug("Added {}. to queryEntries", lineFinal);
 			}
+			
+			/* TODO
+			synchronized (queryEntries) {
+				if (queryEntries.containsKey(lineFinal)) {
+					return;
+				}
+			}
+			
+			var entryPoint = index.search(usedPhrases, exact);
+			
+			synchronized (queryEntries) {
+				queryEntries.put(lineFinal, entryPoint);
+			}
+			*/
+			
 		}
 	}
 }
