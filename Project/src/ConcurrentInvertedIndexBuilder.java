@@ -23,6 +23,8 @@ public class ConcurrentInvertedIndexBuilder extends InvertedIndexBuilder {
 	 * A work queue for parsing each file into index.
 	 */
 	private final WorkQueue queue;
+	
+	// TODO private final ConcurrentInvertedIndex index;
 
 	/**
 	 * Constructs a InvertedIndex builder of an existing index
@@ -34,6 +36,20 @@ public class ConcurrentInvertedIndexBuilder extends InvertedIndexBuilder {
 		super(index);
 		this.queue = queue;
 	}
+	
+	/*
+	 * TODO Approach with the most re-use is a nonstatic traverse method in the single
+	 * threaded version that calls addFile(Path) not addFile(Path, Index).
+	 * 
+	 * @Override addFile(Path) {
+	 * 		add to the work queue
+	 * }
+	 * 
+	 * @Override traverse(Path) {
+	 * 	super.traverse(...)
+	 * 	queue.finish();
+	 * }
+	 */
 
 	@Override
 	public ConcurrentInvertedIndexBuilder traverse(Path input) throws IOException {
@@ -66,7 +82,7 @@ public class ConcurrentInvertedIndexBuilder extends InvertedIndexBuilder {
 		 *
 		 * @param path the path to be added into InvertedIndex
 		 */
-		IndexingTask(Path path) {
+		IndexingTask(Path path) { // TODO public or private
 			this.path = path;
 		}
 

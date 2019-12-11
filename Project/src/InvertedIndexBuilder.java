@@ -33,7 +33,7 @@ public class InvertedIndexBuilder {
 	/**
 	 * An index to store words and the location (both file location and position in file) of where those words were found.
 	 */
-	protected final InvertedIndex index;
+	protected final InvertedIndex index; // TODO Breaking encapsulation
 
 	/**
 	 * Constructs a InvertedIndex builder of an existing index
@@ -90,6 +90,12 @@ public class InvertedIndexBuilder {
 	 */
 	public InvertedIndexBuilder traverse(Path input) throws IOException {
 		InvertedIndexBuilder.traverse(input, index);
+		/* TODO
+		List<Path> paths = getFiles(input);
+		for (Path in : paths) {
+			addFile(in);
+		}
+		*/
 		return this;
 	}
 
